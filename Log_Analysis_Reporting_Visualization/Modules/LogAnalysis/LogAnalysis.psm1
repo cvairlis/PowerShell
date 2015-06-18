@@ -1965,203 +1965,102 @@ function Get-HashTableForTimeLineChart
     }
     Process
     {
-        if ($LogName -eq ""){
-            # an o xrhsths zhthsei optikopoihsh gia ligoteres apo 7 meres tote h omadopoihsh ginetai ANA WRA
-            if ($timeSpan.Days -lt 7){
-                $timeRangesForValues = Get-TimeRangesForValues -DateTime $After
-                $timeRangesForNames = Get-TimeRangesForNames -DateTime $After
-                <#
-                $counter = 0
-                #gia kathe wra apo ta diasthmata kathe meras kanoume ena sql erwthma       
-                foreach ($timeRange in $timeRangesForValues){
 
-                    $query = "SELECT COUNT(*) AS Count FROM $Table
-                              WHERE (TimeCreated BETWEEN $timeRange)"
+         #pairnei tis katallhles ranges kai meta apla kanei ta select ths sql
+         $timeRangesForNames = Get-TimeRangesForNames -DateTime $After
+         $timeRangesForValues = Get-TimeRangesForValues -DateTime $After
 
-                    $a = (Get-LogDatabaseData -connectionString $LogConnectionString `
+        if ($LogName -eq ""){            
+            #phre tis ranges twra kanei to erwthma kai ftiaxnei to hash table gia timeline xwris logname
+            $counter = 0
+            #gia kathe wra apo ta diasthmata kathe meras kanoume ena sql erwthma       
+            foreach ($timeRange in $timeRangesForValues){
+                $query = "SELECT COUNT(*) AS Count FROM $Table
+                          WHERE (TimeCreated BETWEEN $timeRange)"
+
+                $a = (Get-LogDatabaseData -connectionString $LogConnectionString `
                                               -isSQLServer `
                                               -query $query).Count
 
-                    $addition = $hashTable.Add($timeRangesForNames.get($counter),$a)
-                    $counter++
-                }
-                #>
-            } elseif ($timeSpan.Days -gt 7 -and $timeSpan.Days -le 30){
-                $timeSpan
-                "mpike"
-                $timeRangesForValues = Get-TimeRangesForValues -DateTime $After
-                $timeRangesForValues
-                $timeRangesForNames = Get-TimeRangesForNames -DateTime $After
-                <#
-                $counter = 0
-                #gia kathe wra apo ta diasthmata kathe meras kanoume ena sql erwthma       
-                foreach ($timeRange in $timeRangesForValues){
-
-                    $query = "SELECT COUNT(*) AS Count FROM $Table
-                              WHERE (TimeCreated BETWEEN $timeRange)"
-
-                    $a = (Get-LogDatabaseData -connectionString $LogConnectionString `
-                                              -isSQLServer `
-                                              -query $query).Count
-
-                    $addition = $hashTable.Add($timeRangesForNames.get($counter),$a)
-                    $counter++
-                }
-                #>
-
-
-            } elseif ($timeSpan.Days -gt 30){
-
-
+                $addition = $hashTable.Add($timeRangesForNames.get($counter),$a)
+                $counter++
             }
-
-                $counter = 0
-                #gia kathe wra apo ta diasthmata kathe meras kanoume ena sql erwthma       
-                foreach ($timeRange in $timeRangesForValues){
-
-                    $query = "SELECT COUNT(*) AS Count FROM $Table
-                              WHERE (TimeCreated BETWEEN $timeRange)"
-
-                    $a = (Get-LogDatabaseData -connectionString $LogConnectionString `
-                                              -isSQLServer `
-                                              -query $query).Count
-
-                    $addition = $hashTable.Add($timeRangesForNames.get($counter),$a)
-                    $counter++
-                }
-            #phre tis ranges twra kanei to erwthma kai ftiaxnei to hash table
-
-
 
         } elseif ($LogName -ne ""){
             
             if ($LogName -ne "Security"){
 
-                if ($timeSpan.Days -lt 7){
-                    $timeRangesForValues = Get-TimeRangesForValues -DateTime $After
-                    $timeRangesForNames = Get-TimeRangesForNames -DateTime $After
-                    $counter = 0
-                    #gia kathe wra apo ta diasthmata kathe meras kanoume ena sql erwthma       
-                    foreach ($timeRange in $timeRangesForValues){
+                $counter = 0
+                #gia kathe wra apo ta diasthmata kathe meras kanoume ena sql erwthma       
+                foreach ($timeRange in $timeRangesForValues){
     
-                        $query = "SELECT COUNT(*) AS Count FROM $Table
-                                WHERE LogName = '$LogName'
-                                AND (TimeCreated BETWEEN $timeRange)"
+                    $query = "SELECT COUNT(*) AS Count FROM $Table
+                              WHERE LogName = '$LogName'
+                              AND (TimeCreated BETWEEN $timeRange)"
     
-                        $a = (Get-LogDatabaseData -connectionString $LogConnectionString `
-                                                -isSQLServer `
-                                                -query $query).Count
+                    $a = (Get-LogDatabaseData -connectionString $LogConnectionString `
+                                               -isSQLServer `
+                                               -query $query).Count
     
-                        $addition = $hashTable.Add($timeRangesForNames.get($counter),$a)
-                        $counter++
-                    }
-                } elseif ($timeSpan.Days -gt 7 -and $timeSpan.Days -le 30){
-
-
-                } elseif ($timeSpan.Days -gt 30){
-
-
+                    $addition = $hashTable.Add($timeRangesForNames.get($counter),$a)
+                    $counter++
                 }
-
-
+            
 
             } elseif ($LogName -eq "Security"){
 
                 if ($SecurityType -eq ""){
 
-                    if ($timeSpan.Days -lt 7){
-                        $timeRangesForValues = Get-TimeRangesForValues -DateTime $After
-                        $timeRangesForNames = Get-TimeRangesForNames -DateTime $After
-                        $counter = 0
-                        #gia kathe wra apo ta diasthmata kathe meras kanoume ena sql erwthma       
-                        foreach ($timeRange in $timeRangesForValues){
+                    $counter = 0
+                    #gia kathe wra apo ta diasthmata kathe meras kanoume ena sql erwthma       
+                    foreach ($timeRange in $timeRangesForValues){
+                        $query = "SELECT COUNT(*) AS Count FROM $Table
+                                  WHERE LogName = '$LogName'
+                                  AND (TimeCreated BETWEEN $timeRange)"
         
-                            $query = "SELECT COUNT(*) AS Count FROM $Table
-                                    WHERE LogName = '$LogName'
-                                    AND (TimeCreated BETWEEN $timeRange)"
+                        $a = (Get-LogDatabaseData -connectionString $LogConnectionString `
+                                                   -isSQLServer `
+                                                   -query $query).Count
         
-                            $a = (Get-LogDatabaseData -connectionString $LogConnectionString `
-                                                    -isSQLServer `
-                                                    -query $query).Count
-        
-                            $addition = $hashTable.Add($timeRangesForNames.get($counter),$a)
-                            $counter++
-                        }
-                    } elseif ($timeSpan.Days -gt 7 -and $timeSpan.Days -le 30){
-
-
-                    } elseif ($timeSpan.Days -gt 30){
-
-
+                        $addition = $hashTable.Add($timeRangesForNames.get($counter),$a)
+                        $counter++
                     }
 
                 } elseif ($SecurityType -eq "Failure"){
-                    if ($timeSpan.Days -lt 7){
-                        $timeRangesForValues = Get-TimeRangesForValues -DateTime $After
-                        $timeRangesForNames = Get-TimeRangesForNames -DateTime $After
-                        $counter = 0
-                        #gia kathe wra apo ta diasthmata kathe meras kanoume ena sql erwthma       
-                        foreach ($timeRange in $timeRangesForValues){
+                    $counter = 0
+                    #gia kathe wra apo ta diasthmata kathe meras kanoume ena sql erwthma       
+                    foreach ($timeRange in $timeRangesForValues){
+                        $query = "SELECT COUNT(*) AS Count FROM $Table
+                                  WHERE LogName = '$LogName' AND EventId = 4625
+                                  AND (TimeCreated BETWEEN $timeRange)"
         
-                            $query = "SELECT COUNT(*) AS Count FROM $Table
-                                    WHERE LogName = '$LogName' AND EventId = 4625
-                                    AND (TimeCreated BETWEEN $timeRange)"
+                        $a = (Get-LogDatabaseData -connectionString $LogConnectionString `
+                                                  -isSQLServer `
+                                                  -query $query).Count
         
-                            $a = (Get-LogDatabaseData -connectionString $LogConnectionString `
-                                                    -isSQLServer `
-                                                    -query $query).Count
-        
-                            $addition = $hashTable.Add($timeRangesForNames.get($counter),$a)
-                            $counter++
-                        }
+                        $addition = $hashTable.Add($timeRangesForNames.get($counter),$a)
+                        $counter++
                     }
-                    elseif ($timeSpan.Days -gt 7 -and $timeSpan.Days -le 30){
-
-
-                    } elseif ($timeSpan.Days -gt 30){
-
-
-                    }
-
-
                 } elseif ($SecurityType -eq "Success"){
 
-                    if ($timeSpan.Days -lt 7){
-                        $timeRangesForValues = Get-TimeRangesForValues -DateTime $After
-                        $timeRangesForNames = Get-TimeRangesForNames -DateTime $After
-                        $counter = 0
-                        #gia kathe wra apo ta diasthmata kathe meras kanoume ena sql erwthma       
-                        foreach ($timeRange in $timeRangesForValues){
+                    $counter = 0
+                    #gia kathe wra apo ta diasthmata kathe meras kanoume ena sql erwthma       
+                    foreach ($timeRange in $timeRangesForValues){
         
-                            $query = "SELECT COUNT(*) AS Count FROM $Table
-                                    WHERE LogName = '$LogName' AND EventId = 4624
-                                    AND (TimeCreated BETWEEN $timeRange)"
+                        $query = "SELECT COUNT(*) AS Count FROM $Table
+                                  WHERE LogName = '$LogName' AND EventId = 4624
+                                  AND (TimeCreated BETWEEN $timeRange)"
         
-                            $a = (Get-LogDatabaseData -connectionString $LogConnectionString `
-                                                    -isSQLServer `
-                                                    -query $query).Count
+                        $a = (Get-LogDatabaseData -connectionString $LogConnectionString `
+                                                  -isSQLServer `
+                                                  -query $query).Count
         
-                            $addition = $hashTable.Add($timeRangesForNames.get($counter),$a)
-                            $counter++
-                        }
+                        $addition = $hashTable.Add($timeRangesForNames.get($counter),$a)
+                        $counter++
                     }
-
-                    elseif ($timeSpan.Days -gt 7 -and $timeSpan.Days -le 30){
-
-
-                    } elseif ($timeSpan.Days -gt 30){
-
-
-                    }
-                }
-                
-
-
-            }
-
-
+                }                
+            }            
         }
-        
     }
     End
     {
