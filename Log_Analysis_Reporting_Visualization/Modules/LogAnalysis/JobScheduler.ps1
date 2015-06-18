@@ -8,7 +8,7 @@
 $jobname = "Automate Log Database Filling"
 
 # Here is where your ScheduleLogs.ps1 script exists.
-$script =  "C:\Users\Administrador\Documents\GitHub\PowerShell\Log_Analysis_Reporting_&_Visualization\Modules\LogAnalysis\ScheduleLogs.ps1"
+$script =  "C:\Users\Administrador\Documents\GitHub\PowerShell\Log_Analysis_Reporting_Visualization\Modules\LogAnalysis\ScheduleLogs.ps1"
 $repeat = (New-TimeSpan -Minutes 10)
  
 
