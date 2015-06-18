@@ -800,8 +800,9 @@ function Set-LogEventInDatabase
 
             # antikathistw to char(') kai char(;) me keno giati yparxei provlima me thn eisagwgh sth vasi
             # an to message einai keno apla vazw to keno message sth vasi kai de kalw methodo replace!!!
-            if ($ev.Message.Equals("")){
-                [String]$messagestr = $ev.Message.tostring()
+            if ($ev.Message -eq ""){
+                $ev.Message
+                [String]$messagestr = $ev.Message
             } else {
                 [String]$messagestr = ($ev.Message.toString().Replace("'","")).Replace(";","")
             }
