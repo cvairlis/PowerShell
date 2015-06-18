@@ -1970,6 +1970,7 @@ function Get-HashTableForTimeLineChart
             if ($timeSpan.Days -lt 7){
                 $timeRangesForValues = Get-TimeRangesForValues -DateTime $After
                 $timeRangesForNames = Get-TimeRangesForNames -DateTime $After
+                <#
                 $counter = 0
                 #gia kathe wra apo ta diasthmata kathe meras kanoume ena sql erwthma       
                 foreach ($timeRange in $timeRangesForValues){
@@ -1984,7 +1985,54 @@ function Get-HashTableForTimeLineChart
                     $addition = $hashTable.Add($timeRangesForNames.get($counter),$a)
                     $counter++
                 }
+                #>
+            } elseif ($timeSpan.Days -gt 7 -and $timeSpan.Days -le 30){
+                $timeSpan
+                "mpike"
+                $timeRangesForValues = Get-TimeRangesForValues -DateTime $After
+                $timeRangesForValues
+                $timeRangesForNames = Get-TimeRangesForNames -DateTime $After
+                <#
+                $counter = 0
+                #gia kathe wra apo ta diasthmata kathe meras kanoume ena sql erwthma       
+                foreach ($timeRange in $timeRangesForValues){
+
+                    $query = "SELECT COUNT(*) AS Count FROM $Table
+                              WHERE (TimeCreated BETWEEN $timeRange)"
+
+                    $a = (Get-LogDatabaseData -connectionString $LogConnectionString `
+                                              -isSQLServer `
+                                              -query $query).Count
+
+                    $addition = $hashTable.Add($timeRangesForNames.get($counter),$a)
+                    $counter++
+                }
+                #>
+
+
+            } elseif ($timeSpan.Days -gt 30){
+
+
             }
+
+                $counter = 0
+                #gia kathe wra apo ta diasthmata kathe meras kanoume ena sql erwthma       
+                foreach ($timeRange in $timeRangesForValues){
+
+                    $query = "SELECT COUNT(*) AS Count FROM $Table
+                              WHERE (TimeCreated BETWEEN $timeRange)"
+
+                    $a = (Get-LogDatabaseData -connectionString $LogConnectionString `
+                                              -isSQLServer `
+                                              -query $query).Count
+
+                    $addition = $hashTable.Add($timeRangesForNames.get($counter),$a)
+                    $counter++
+                }
+            #phre tis ranges twra kanei to erwthma kai ftiaxnei to hash table
+
+
+
         } elseif ($LogName -ne ""){
             
             if ($LogName -ne "Security"){
@@ -2007,7 +2055,14 @@ function Get-HashTableForTimeLineChart
                         $addition = $hashTable.Add($timeRangesForNames.get($counter),$a)
                         $counter++
                     }
+                } elseif ($timeSpan.Days -gt 7 -and $timeSpan.Days -le 30){
+
+
+                } elseif ($timeSpan.Days -gt 30){
+
+
                 }
+
 
 
             } elseif ($LogName -eq "Security"){
@@ -2032,6 +2087,12 @@ function Get-HashTableForTimeLineChart
                             $addition = $hashTable.Add($timeRangesForNames.get($counter),$a)
                             $counter++
                         }
+                    } elseif ($timeSpan.Days -gt 7 -and $timeSpan.Days -le 30){
+
+
+                    } elseif ($timeSpan.Days -gt 30){
+
+
                     }
 
                 } elseif ($SecurityType -eq "Failure"){
@@ -2053,6 +2114,13 @@ function Get-HashTableForTimeLineChart
                             $addition = $hashTable.Add($timeRangesForNames.get($counter),$a)
                             $counter++
                         }
+                    }
+                    elseif ($timeSpan.Days -gt 7 -and $timeSpan.Days -le 30){
+
+
+                    } elseif ($timeSpan.Days -gt 30){
+
+
                     }
 
 
@@ -2076,6 +2144,14 @@ function Get-HashTableForTimeLineChart
                             $addition = $hashTable.Add($timeRangesForNames.get($counter),$a)
                             $counter++
                         }
+                    }
+
+                    elseif ($timeSpan.Days -gt 7 -and $timeSpan.Days -le 30){
+
+
+                    } elseif ($timeSpan.Days -gt 30){
+
+
                     }
                 }
                 
@@ -2168,15 +2244,24 @@ function Get-TimeRangesForNames
             }
 
 
-
         # an h hmeromhnia pou irthe apexei apo th shmerinh perissores apo 7 meres (arithmos 7) kai ligoteres apo 30
         # tote ftiakse fiasthmata ths mias meras
         } elseif ($timeSpan.Days -gt 7 -and $timeSpan.Days -le 30){
+            # gia kathe mera apo th prwth mera pou irthe ftiaxnei ena str tou typou px 12_Jun mexri na ftasei th shmerinh hmeromhnia
+            for ($i=0; $DateToWorkWith.AddDays($i).date -le (Get-Date).date; $i++){
+                $temp = $DateToWorkWith.AddDays($i).ToString("dd_MMM")   
+
+                $addition = $namesArray.Add($temp)
+            }
 
 
         # an h hmeromhnia pou irthe apexei apo th shmerinh perissores apo 30
         # tote ftiakse fiasthmata ths mias vdomadas
         } elseif ($timeSpan.Days -gt 30){
+
+            $firstWeek = Get-NumberOfWeekFromTheBeginningOfTime
+
+            $template = "Week_"+$firstWeek
 
 
         }
@@ -2270,6 +2355,12 @@ function Get-TimeRangesForValues
         # tote ftiakse fiasthmata ths mias meras
         } elseif ($timeSpan.Days -gt 7 -and $timeSpan.Days -le 30){
 
+             for ($i=0; $DateToWorkWith.AddDays($i).date -le (Get-Date).date; $i++){
+                $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 00:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 23:59:59")+"'"
+                $addition = $datesArray.Add($temp)
+            }
+
+
 
         # an h hmeromhnia pou irthe apexei apo th shmerinh perissores apo 30
         # tote ftiakse fiasthmata ths mias vdomadas
@@ -2289,44 +2380,6 @@ function Get-TimeRangesForValues
 }
 
 
-
-<#
-.Synopsis
-   Short description
-.DESCRIPTION
-   Long description
-.EXAMPLE
-   Example of how to use this cmdlet
-.EXAMPLE
-   Another example of how to use this cmdlet
-#>
-function Get-WeekRangesUntilNow
-{
-    [CmdletBinding()]
-    [OutputType([int])]
-    Param
-    (
-        # Param1 help description
-        [Parameter(Mandatory=$true,
-                   ValueFromPipelineByPropertyName=$true,
-                   Position=0)]
-        [System.DateTime]$DateTime
-    )
-
-    Begin
-    {
-        $DatesArray = New-Object System.Collections.ArrayList
-    }
-    Process
-    {
-
-        New-TimeSpan -End $DateTime -Start (Get-Date)
-        
-    }
-    End
-    {
-    }
-}
 
 <#
 .Synopsis

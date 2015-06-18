@@ -8,7 +8,7 @@
 $jobname = "Automate Log Database Filling"
 
 # Here is where your ScheduleLogs.ps1 script exists.
-$script =  "C:\Users\Administrador\Documents\WindowsPowerShell\Modules\LogAnalysis\ScheduleLogs.ps1"
+$script =  "C:\Users\Administrador\Documents\GitHub\PowerShell\Log_Analysis_Reporting_&_Visualization\Modules\LogAnalysis\ScheduleLogs.ps1"
 $repeat = (New-TimeSpan -Minutes 10)
  
 
@@ -26,5 +26,7 @@ $options = New-ScheduledJobOption -RunElevated -ContinueIfGoingOnBattery -StartI
 Register-ScheduledJob -Name $jobname -ScriptBlock $scriptblock -Trigger $trigger -ScheduledJobOption $options -Credential $credential
 
 #after this go to task scheduler to check if the job appears there
+
+
 
 
