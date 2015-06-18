@@ -645,8 +645,8 @@ function Get-TableRowNumber
 
                 [int]$number = (Get-LogDatabaseData -connectionString $LogConnectionString `
                                  -isSQLServer `
-                                 -query "SELECT COUNT(*) from $ta
-                                         WHERE TimeCreated >= '$After'").item(0)
+                                 -query "SELECT COUNT(*) AS Count from $ta
+                                         WHERE TimeCreated >= '$After'").Count
 
                 Write-Output $number
 
@@ -800,12 +800,8 @@ function Set-LogEventInDatabase
 
             # antikathistw to char(') kai char(;) me keno giati yparxei provlima me thn eisagwgh sth vasi
             # an to message einai keno apla vazw to keno message sth vasi kai de kalw methodo replace!!!
-            if ($ev.Message -eq ""){
-                $ev.Message
-                [String]$messagestr = $ev.Message
-            } else {
-                [String]$messagestr = ($ev.Message.toString().Replace("'","")).Replace(";","")
-            }
+            [String]$messagestr = (($ev.Message -replace "'","") -replace ";","")
+            
             
             #$messagestr = $ev.Message.toString().Replace(";","")
             #$messagestr
@@ -951,7 +947,8 @@ function Set-LogEventInDatabase
                 } elseif ($ev.Id -eq 4625) {
 
                    [String]$tableName = "DETAILS4625"
-                        
+                        $ev.logname
+                        $ev.id
                     if (!((Get-DatabaseAvailableTableNames).table_name).contains($tableName)){
                         
                         Write-Verbose "Table $tableName not found. It will be created."
