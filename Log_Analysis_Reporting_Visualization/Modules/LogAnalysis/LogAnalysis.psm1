@@ -2061,7 +2061,7 @@ function Get-HashTableForTimeLineChart
                 }                
             }            
         }
-    }
+     }
     End
     {
         
@@ -2367,56 +2367,6 @@ function Get-NumberOfWeekFromTheBeginningOfTime
     }
 }
 
-
-<#
-.Synopsis
-   Short description
-.DESCRIPTION
-   Long description
-.EXAMPLE
-   Example of how to use this cmdlet
-.EXAMPLE
-   Another example of how to use this cmdlet
-#>
-function Get-AllDataGroupByEventId
-{
-    [CmdletBinding()]
-    [OutputType([int])]
-    Param
-    (
-        # Param1 help description
-        [Parameter(Mandatory=$true,
-                   ValueFromPipelineByPropertyName=$true,
-                   Position=0)]
-        $LogName
-    )
-
-    Begin
-    {
-        $hash= [ordered]@{}
-    }
-    Process
-    {
-
-        
-        $a = Get-LogDatabaseData -connectionString $LogConnectionString `
-                                 -isSQLServer `
-                                 -query "SELECT EventId AS Name, count(*) AS Value from EVENTS   
-                                         WHERE LogName = '$LogName'                                      
-                                         GROUP BY EventId
-                                         ORDER BY Value DESC"
-
-        foreach ($in in $a){
-            $hash.add(($in.Name).toString(), $in.Value)
-        }
-
-        
-        Write-Output $hash
-    }
-    End
-    {
-    }
-}
 
 
 <#
