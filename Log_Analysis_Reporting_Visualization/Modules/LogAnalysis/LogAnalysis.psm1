@@ -2148,8 +2148,8 @@ function Get-TimeRangesForNames
         } elseif ($timeSpan.Days -gt 7 -and $timeSpan.Days -le 30){
             # gia kathe mera apo th prwth mera pou irthe ftiaxnei ena str tou typou px 12_Jun mexri na ftasei th shmerinh hmeromhnia
             for ($i=0; $DateToWorkWith.AddDays($i).date -le (Get-Date).date; $i++){
-                $temp = $DateToWorkWith.AddDays($i).ToString("dd_MMM")   
 
+                $temp = $DateToWorkWith.AddDays($i).ToString("dd_MMM")  
                 $addition = $namesArray.Add($temp)
             }
 
@@ -2158,7 +2158,7 @@ function Get-TimeRangesForNames
         # tote ftiakse fiasthmata ths mias vdomadas
         } elseif ($timeSpan.Days -gt 30){
 
-            $firstWeek = Get-NumberOfWeekFromTheBeginningOfTime
+            $weekNumber = Get-NumberOfWeekFromTheBeginningOfTime
 
             $template = "Week_"+$firstWeek
 
