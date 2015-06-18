@@ -39,8 +39,6 @@ $trigger = New-JobTrigger -Once -At (Get-Date).Date -RepeatIndefinitely -Repetit
 $msg = "Enter the username and password that will run the task"
 $credential = $Host.UI.PromptForCredential("Task username and password",$msg,"$env:userdomain\$env:username",$env:userdomain)
 
-#$protected = 'G2*da6P1V&s9B' | Protect-String
-#$credential = New-CredentialObject -User Administrador -ProtectedPassword $protected
 
  
 $options = New-ScheduledJobOption -RunElevated -ContinueIfGoingOnBattery -StartIfOnBattery -HideInTaskScheduler
