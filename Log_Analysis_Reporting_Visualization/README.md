@@ -24,12 +24,26 @@ It is not finished yet. It will be updated with full documentation and comments 
 WAY IT WORKS:
 
 - Creating DataBase
+  New DataBase
+  Name LogDB
+  Create a new Table Events (I give the sql code for this)
+
+- Create New Folder for PowerShell Modules
+  Save Modules at C:\Users\"currentuser"\Documents\WindowsPowerShell\Modules
 
 - Saving Events in DataBase
+  Open Windows PowerShell and type Import-Module LogAnalysis and then type the following:
+  PS C:\> Get-WinEvent -LogName Application, Security, System | Sort-Object -Property TimeCreated | Set-LogEventInDatabase
 
 - Auto Created Tables
+  DETAILS 4625
+  DETAILS 4624 
+  etc
 
 - Schedule Automatic DataBase filling (JobScheduler.ps1)
+
+- Convert (LogVisualization.ps1) to executable so you can run it with double click.
+  https://gallery.technet.microsoft.com/PS2EXE-Convert-PowerShell-9e4e07f1
 
 - Log Visualization (LogVisualization.ps1) goes like this:
   A window appears and you can choose between History, Intraday and Custom Range visualization. 
