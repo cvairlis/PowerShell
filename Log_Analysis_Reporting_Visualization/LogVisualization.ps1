@@ -400,7 +400,7 @@ function Get-LogVisualization
         $MachinesComboBox.DropDownStyle = [System.Windows.Forms.ComboBoxStyle]::DropDownList
 
 
-        [String[]]$machines = "snf-654527"
+        [String[]]$machines = $env:COMPUTERNAME
 
         foreach ($machine in $machines){
             # putting in variable to prevent from output to console
