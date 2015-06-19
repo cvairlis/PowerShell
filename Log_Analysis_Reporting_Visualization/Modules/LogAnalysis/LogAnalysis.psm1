@@ -2157,11 +2157,15 @@ function Get-TimeRangesForNames
         # an h hmeromhnia pou irthe apexei apo th shmerinh perissores apo 30
         # tote ftiakse fiasthmata ths mias vdomadas
         } elseif ($timeSpan.Days -gt 30){
+            
+            $weekCameFromDate = Get-NumberOfWeekOfDate -DateTime $DateToWorkWith
 
-            $weekNumber = Get-NumberOfWeekFromTheBeginningOfTime
-
-            $template = "Week_"+$firstWeek
-
+            $weekOfCurrentDate = Get-NumberOfWeekOfDate -DateTime (Get-date)
+        
+            for ($i = $weekCameFromDate; $i -le $weekOfCurrentDate; $i++){
+                
+                $addition = $namesArray.Add("Week_$i")
+            }
 
         }
         
@@ -2184,7 +2188,27 @@ function Get-TimeRangesForNames
 .EXAMPLE
    Example of how to use this cmdlet
 .EXAMPLE
-   Another example of how to use this cmdlet
+   PS C:\Windows\system32> Get-TimeRangesForValues -DateTime "02/05/2015 00:00:00"
+    '02/05/2015 00:00:00' AND '02/07/2015 23:59:59'
+    '02/08/2015 00:00:00' AND '02/14/2015 23:59:59'
+    '02/15/2015 00:00:00' AND '02/21/2015 23:59:59'
+    '02/22/2015 00:00:00' AND '02/28/2015 23:59:59'
+    '03/01/2015 00:00:00' AND '03/07/2015 23:59:59'
+    '03/08/2015 00:00:00' AND '03/14/2015 23:59:59'
+    '03/15/2015 00:00:00' AND '03/21/2015 23:59:59'
+    '03/22/2015 00:00:00' AND '03/28/2015 23:59:59'
+    '03/29/2015 00:00:00' AND '04/04/2015 23:59:59'
+    '04/05/2015 00:00:00' AND '04/11/2015 23:59:59'
+    '04/12/2015 00:00:00' AND '04/18/2015 23:59:59'
+    '04/19/2015 00:00:00' AND '04/25/2015 23:59:59'
+    '04/26/2015 00:00:00' AND '05/02/2015 23:59:59'
+    '05/03/2015 00:00:00' AND '05/09/2015 23:59:59'
+    '05/10/2015 00:00:00' AND '05/16/2015 23:59:59'
+    '05/17/2015 00:00:00' AND '05/23/2015 23:59:59'
+    '05/24/2015 00:00:00' AND '05/30/2015 23:59:59'
+    '05/31/2015 00:00:00' AND '06/06/2015 23:59:59'
+    '06/07/2015 00:00:00' AND '06/13/2015 23:59:59'
+    '06/14/2015 00:00:00' AND '06/20/2015 23:59:59'
 #>
 function Get-TimeRangesForValues
 {
@@ -2265,10 +2289,58 @@ function Get-TimeRangesForValues
         # tote ftiakse fiasthmata ths mias vdomadas
         } elseif ($timeSpan.Days -gt 30){
 
+            $weekCameFromDate = Get-NumberOfWeekOfDate -DateTime $DateToWorkWith
 
+            $weekOfCurrentDate = Get-NumberOfWeekOfDate -DateTime (Get-date)
+
+            if ($DateToWorkWith.DayOfWeek.value__ -ne 0){
+                switch ($DateToWorkWith.DayOfWeek.value__){
+                1 { 
+                    $temp = "'"+$DateToWorkWith.ToString("MM/dd/yyyy 00:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays(5).ToString("MM/dd/yyyy 23:59:59")+"'"
+                    $next = $DateToWorkWith.AddDays(6)
+                ;break}
+                2 { 
+                    $temp = "'"+$DateToWorkWith.ToString("MM/dd/yyyy 00:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays(4).ToString("MM/dd/yyyy 23:59:59")+"'"
+                    $next = $DateToWorkWith.AddDays(5)
+                ;break}
+                3 { 
+                    $temp = "'"+$DateToWorkWith.ToString("MM/dd/yyyy 00:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays(3).ToString("MM/dd/yyyy 23:59:59")+"'"
+                    $next = $DateToWorkWith.AddDays(4)
+                ;break}
+                4 { 
+                    $temp = "'"+$DateToWorkWith.ToString("MM/dd/yyyy 00:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays(2).ToString("MM/dd/yyyy 23:59:59")+"'"
+                    $next = $DateToWorkWith.AddDays(3)
+                ;break}
+                5 { 
+                    $temp = "'"+$DateToWorkWith.ToString("MM/dd/yyyy 00:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays(1).ToString("MM/dd/yyyy 23:59:59")+"'"
+                    $next = $DateToWorkWith.AddDays(2)
+                ;break}
+                6 { 
+                    $temp = "'"+$DateToWorkWith.ToString("MM/dd/yyyy 00:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.ToString("MM/dd/yyyy 23:59:59")+"'"
+                    $next = $DateToWorkWith.AddDays(1)
+                ;break}
+
+                }
+                $addition = $datesArray.Add($temp)
+            } else {
+                $next = $DateToWorkWith
+            }
+            
+            [System.Collections.ArrayList]$dates = (Get-DatesUntilNow -DateTime $next)
+            $dates.reverse()
+            
+            foreach ($date in $dates){
+
+                if ($date.DayOfWeek.value__ -eq 0){
+                    $temp = "'"+$date.ToString("MM/dd/yyyy 00:00:00")+"'"+" AND "+ "'"+$date.AddDays($i+6).ToString("MM/dd/yyyy 23:59:59")+"'"
+
+                    $addition = $datesArray.Add($temp)
+                }
+                
+
+            }
+            # edw epese poly texnh filaraki :P
         }
-        
-
         
     }
     End
@@ -2342,19 +2414,26 @@ function Get-DatesUntilNow
 .EXAMPLE
    http://stackoverflow.com/questions/23472027/how-is-first-day-of-week-dermined-in-powershell
 #>
-function Get-NumberOfWeekFromTheBeginningOfTime
+function Get-NumberOfWeekOfDate
 {
     [CmdletBinding()]
     [OutputType([int])]
     Param
     (
+        # Param1 help description
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true,
+                   Position=0)]
+        [string]$DateTime
         
     )
     Process
     {
-        $intDayOfWeek = (get-date).DayOfWeek.value__
+        [System.DateTime]$dateToWorkWith = $DateTime
+
+        $intDayOfWeek = $dateToWorkWith.DayOfWeek.value__
         $daysToWednesday = (3 - $intDayOfWeek)
-        $wednesdayCurrentWeek = (get-date).AddDays($daysToWednesday)
+        $wednesdayCurrentWeek = $dateToWorkWith.AddDays($daysToWednesday)
 
         # %V basically gets the amount of '7 days' that have passed this year (starting at 1)
         $week = get-date -date $wednesdayCurrentWeek -uFormat %V
@@ -2547,7 +2626,7 @@ Export-ModuleMember -Function Set-LogNamesInDatabase,
                               Get-HashTableForPieChart,
                               Get-DatesUntilNow,
                               Get-HashTableForTimeLineChart,
-                              Get-NumberOfWeekFromTheBeginningOfTime,
+                              Get-NumberOfWeekOfDate,
                               Get-EventsGroupByEventId,
                               Get-TimeRangesForValues,
                               Get-EventsOccured,
