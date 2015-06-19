@@ -53,6 +53,7 @@ KEY POINTS:
 - Dates Time and TimeRanges American Style
 
 - DataBase have to re-created every new Year to contain only events occured the current year !!! 
+	In other words the first event that is stored in the database have to be after 01/04/20xx.
 	This is because if there are events from past years log analysis - Get-HashTableForTimeLineChart cmdlet cannot produce correct results.
 
 
