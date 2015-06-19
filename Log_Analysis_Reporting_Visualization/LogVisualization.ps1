@@ -932,7 +932,7 @@ function Get-PreparedForVisualization
 
         $PreparingDataForm.Text = "Preparing Log Data"
         $PreparingDataForm.Width = 500
-        $PreparingDataForm.Height = 480
+        $PreparingDataForm.Height = 470
         $PreparingDataForm.MaximizeBox = $False
         $PreparingDataForm.StartPosition = 'CenterScreen'
         $PreparingDataForm.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::Fixed3D
@@ -943,7 +943,7 @@ function Get-PreparedForVisualization
         $EventsFoundLabel = New-Object system.windows.forms.label
         $EventsFoundLabel.Text = "Total Event Log Events Found:"
         $EventsFoundLabel.Size = '312,30'
-        $EventsFoundLabel.Location = '22,10'
+        $EventsFoundLabel.Location = '22,60'
         $EventsFoundLabel.Font = New-object System.Drawing.Font('Calibri', 18, [System.Drawing.FontStyle]::Bold, [System.Drawing.GraphicsUnit]::Point,0)
         
         $PreparingDataForm.Controls.Add($EventsFoundLabel)
@@ -952,7 +952,7 @@ function Get-PreparedForVisualization
         
         $EventsFoundTextBox = New-Object -TypeName 'System.Windows.Forms.TextBox'
         $EventsFoundTextBox.Size = '100,20'
-        $EventsFoundTextBox.Location = '340,10'
+        $EventsFoundTextBox.Location = '340,60'
         $EventsFoundTextBox.Font = New-Object System.Drawing.Font("Times New Roman",16)
         $EventsFoundTextBox.ReadOnly = $true
         
@@ -964,10 +964,11 @@ function Get-PreparedForVisualization
 
          # Label for the available machines combobox
         $InformationLabel = New-Object system.windows.forms.label
-        $InformationLabel.Text = "Getting data from the Database maybe will take more than few seconds depending on the size of the available data that is stored in the Database."
+        $InformationLabel.Text = "Windows Event Log Analysis and Visualization"
         $InformationLabel.Size = '450,40'
-        $InformationLabel.Location = '22,50'
-        $InformationLabel.Font = New-object System.Drawing.Font('Calibri', 10, [System.Drawing.FontStyle]::Italic, [System.Drawing.GraphicsUnit]::Point,0)
+        $InformationLabel.Location = '35,15'
+        $InformationLabel.ForeColor = [System.Drawing.Color]::DimGray
+        $InformationLabel.Font = New-object System.Drawing.Font('Calibri', 15, [System.Drawing.FontStyle]::Bold, [System.Drawing.GraphicsUnit]::Point,0)
         
         $PreparingDataForm.Controls.Add($InformationLabel)
 
@@ -976,16 +977,16 @@ function Get-PreparedForVisualization
 
         # Label for the available machines combobox
         $ProceedLabel = New-Object system.windows.forms.label
-        $ProceedLabel.Text = "Proceed by choosing a time range to get the data and then press the Proceed to Visualization button and the progress bar will display the current progress of the retrieving and preparing data procedure."
+        $ProceedLabel.Text = "Proceed by choosing a time range."
         $ProceedLabel.Size = '400,80'
-        $ProceedLabel.Location = '22,90'
+        $ProceedLabel.Location = '22,100'
         $ProceedLabel.Font = New-object System.Drawing.Font('Calibri', 12, [System.Drawing.FontStyle]::Bold, [System.Drawing.GraphicsUnit]::Point,0)
         
         $PreparingDataForm.Controls.Add($ProceedLabel)
 
         # Add Button
         $ProceedButton = New-Object System.Windows.Forms.Button
-        $ProceedButton.Location = New-Object System.Drawing.Size(165,380)
+        $ProceedButton.Location = New-Object System.Drawing.Size(165,350)
         $ProceedButton.Font = New-object System.Drawing.Font('Calibri', 12, [System.Drawing.FontStyle]::Bold, [System.Drawing.GraphicsUnit]::Point,0)
         $ProceedButton.BackColor = [System.Drawing.Color]::Gray
         $ProceedButton.ForeColor = [System.Drawing.Color]::Black
@@ -1108,17 +1109,6 @@ Visualization"
         $System_Drawing_Size = New-Object System.Drawing.Size
         $System_Drawing_Size.Width = 460
         $System_Drawing_Size.Height = 30
-        
-
-        $ProgressBar = New-Object System.Windows.Forms.ProgressBar
-        $ProgressBar.Name = 'Preparing Data. Please wait..'
-        $ProgressBar.Value = 0
-        $ProgressBar.Style="Continuous"
-        $ProgressBar.Size = $System_Drawing_Size
-        $ProgressBar.Left = 15
-        $ProgressBar.Top = 335
-        # Finally, like the other controls, the progress bar needs to be added to the form.
-        $PreparingDataForm.Controls.Add($ProgressBar)
 
 
         $EventsArray = New-Object System.Collections.ArrayList
