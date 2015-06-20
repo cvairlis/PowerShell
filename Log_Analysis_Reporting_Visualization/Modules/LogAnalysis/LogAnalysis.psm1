@@ -1,39 +1,757 @@
-﻿<# 
-
-cmdlets included: 
-
-Export-ModuleMember -Function Set-LogEventInDatabase,
-                              Get-TableContentsFromDatabase,
-                              Clear-TableContentsFromDatabase,
-                              Get-DatabaseAvailableTableNames,
-                              Get-TableRowNumber,
-                              Get-TableColumnNumber,
-                              Set-TableAutoIncrementValue,
-                              Get-CaptionFromSId,
-                              Get-LogonType,
-                              Get-LastStoredEvent,
-                              Get-LastEventDateFromDatabase,
-                              Get-AllEventsGroupByLogName,
-                              Get-HashTableForPieChart,
-                              Get-DatesUntilNow,
-                              Get-HashTableForTimeLineChart,
-                              Get-NumberOfWeekOfDate,
-                              Get-EventsGroupByEventId,
-                              Get-TimeRangesForValues,
-                              Get-EventsOccured,
-                              Get-TimeRangesForNames
-                             
-
-#>
-
-
-$LogErrorLogPreference = 'c:\log-retries.txt'
+﻿$LogErrorLogPreference = 'c:\log-retries.txt'
 $LogConnectionString = 
         "server=localhost\SQLEXPRESS;database=LogDB;trusted_connection=True"
 
 
-
 Import-Module LogDatabase
+
+<#
+.NAME
+   Set-LogNamesInDatabase
+
+.SYNOPSIS
+   Initiates Log Names in LogDatabase.
+
+.SYNTAX
+   Set-LogNamesInDatabase [[-InputLogName] <String[]>]
+   
+.DESCRIPTION
+   LogDatabase (LogDB) contains a table called LOG_TYPE. 
+   In order to initialize and then use the database it is good to have this table in use.
+   It helps us find which eventlogs are in use, how many entries are currently stored
+   for every subtable and other special information.
+
+.PARAMETERS
+   -InputLogName <String[]>
+      Specifies the names of one or more Log Names to be stored in Database.
+      
+      Required?                    true
+      Position?                    1
+      Default value
+      Accept pipeline input?       false
+      Accept wildcard characters?  false
+   
+.EXAMPLE
+   Set-LogNamesInDatabase -InputLogName Application, Security, System
+
+   This is going to set these three string values in Database.
+
+#>
+function Set-LogNamesInDatabase
+{
+    [CmdletBinding()]
+    [OutputType([int])]
+    Param
+    (
+        #Param1 help description
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true)]
+        [String[]]$InputLogName
+    )
+
+    PROCESS {
+        [long]$counter = 0
+        foreach ($logname in $InputLogName) {
+            
+            $query = "INSERT INTO LOG_TYPE
+                      (Id, LogName, Description)
+                      VALUES
+                      ('$counter', '$logname', '$logname Log Entries')"
+
+            Write-Verbose "Query will be $query"
+            Invoke-LogDatabaseQuery -connection $LogConnectionString `
+                                    -isSQLServer `
+                                    -query $query
+
+            $counter++
+        }
+    }
+}
+
+
+
+<#
+.Synopsis
+   Short description
+.DESCRIPTION
+   
+   This cmdlet Clear-TableContentsFromDatabase helps you interact with the LogDatabase
+   and erase the contents of a specific table. You can pass multible tables at once. See examples.
+.EXAMPLE
+   Clear-TableContentsFromDatabase -Table LOG_TYPE, EVENTS
+.EXAMPLE
+   Another example of how to use this cmdlet
+#>
+function Clear-TableContentsFromDatabase
+{
+    [CmdletBinding()]
+    [OutputType([int])]
+    Param
+    (
+        # Param1 help description
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true,
+                   Position=0)]
+        [String[]]$Table,
+
+        [int]$AutoIncrementValue=0
+
+    )
+    Process
+    {
+
+        foreach ($ta in $Table) {
+
+            $query = "DELETE FROM $ta"
+
+            Write-Verbose "Query will be '$query'"
+            Write-Verbose "Deleted Records FOR '$ta' Table:"
+            Invoke-LogDatabaseQuery -connection $LogConnectionString `
+                                    -isSQLServer `
+                                    -query $query
+
+            Set-TableAutoIncrementValue -Table: $ta -Value $AutoIncrementValue
+
+            Write-Verbose "AutoIncrementValue for Table $ta will be $AutoIncrementValue."
+            $AutoIncrementValue++
+            Write-Verbose "The first next new record for Table: $ta will have Id value = $AutoIncrementValue"
+        
+        }
+    }
+}
+
+
+
+<#
+.Synopsis
+   Short description
+.DESCRIPTION
+   Long description
+.EXAMPLE
+   Example of how to use this cmdlet
+.EXAMPLE
+   Another example of how to use this cmdlet
+#>
+function Get-LastEventDateFromDatabase
+{
+    [CmdletBinding()]
+    #[OutputType([String])]
+    Param
+    (
+        # Param1 help description
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true,
+                   Position=0)]
+        [string]$Table,
+        $After,
+        $LogName,
+        $SecurityType
+        # Param2 help description
+       
+        
+    )
+
+    Begin
+    {
+    }
+    Process
+    {
+        [string]$eve = (Get-LogDatabaseData -connectionString $LogConnectionString `
+                                               -isSQLServer `
+                                               -query "SELECT TOP 1 TimeCreated from $Table").TimeCreated
+       # Write-Output 
+       $eve                                         
+
+    }
+    End
+    {
+    }
+}
+
+<#
+.Synopsis
+   Short description
+.DESCRIPTION
+   Long description
+.EXAMPLE
+   Example of how to use this cmdlet
+.EXAMPLE
+   Another example of how to use this cmdlet
+#>
+function Get-TableContentsFromDatabase
+{
+    [CmdletBinding()]
+    #[OutputType([LogAnalysis.LogDatabase.TableContent[]])]
+    Param
+    (
+        # Param1 help description
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true,
+                   Position=0)]
+        [String[]]$Table,
+        # Param2 help description
+        [int]$Newest,
+        [String]$LogName,
+        $SecurityType
+
+    )
+    Process
+    {
+        foreach ($ta in $Table){
+            
+            if ($LogName -eq "") {
+            
+                if ($Newest -eq 0){
+                    <#
+                    $eve = Get-LogDatabaseData -connectionString $LogConnectionString `
+                                               -isSQLServer `
+                                               -query "SELECT * from $ta
+                                                       ORDER BY Id DESC"
+                                                       #>
+                    $eve = Get-LogDatabaseData -connectionString $LogConnectionString `
+                                               -isSQLServer `
+                                               -query "SELECT Id, EventId, LogName, TimeCreated from $ta
+                                                       ORDER BY Id DESC"
+
+                    foreach ($ev in $eve){                
+                        # Creating the custom output
+                        switch ($ta) {
+                            "events"{                        
+                            
+                            $propos = @{'dBIndex'=$ev.Id;
+                                              'EventId'=$ev.EventId; 
+                                              'LogName'=$ev.LogName;
+                                              'TimeCreated'=[System.DateTime]$ev.TimeCreated;
+                                               } ;break
+                            }                 
+                        }     
+                        $obj = New-Object -TypeName psobject -Property $propos
+                        $obj.PSObject.TypeNames.Insert(0,'LogAnalysis.LogDatabase.TableContent')
+                        Write-Output $obj
+                    }
+                } else {
+                    $eve = Get-LogDatabaseData -connectionString $LogConnectionString `
+                                        -isSQLServer `
+                                        -query "SELECT TOP $Newest * from $ta                    
+                                                ORDER BY Id DESC"
+
+                    # Database returns events (number>0)
+                    # with the following foreach loop we make a custom object for each event that came from database
+                
+                    foreach ($ev in $eve){
+                        # Creating the custom output
+                        switch ($ta) {
+                            "events"{
+                            #[System.DateTime]$dt2 = $ev.TimeCreated
+
+                            $propos = @{'dBIndex'=$ev.Id;
+                                   'EventId'=$ev.EventId;
+                                   'EventVersion'=$ev.EventVersion;
+                                   'EventLevel'=$ev.EventLevel;
+                                   'Task'=$ev.Task;
+                                   'OpCode'=$ev.OpCode;
+                                   'Keywords'=$ev.Keywords;
+                                   'EventRecordId'=$ev.EventRecordId;
+                                   'ProviderName'=$ev.ProviderName;
+                                   'ProviderId'=$ev.ProviderId;
+                                   'LogName'=$ev.LogName;
+                                   'ProcessId'=$ev.ProcessId;
+                                   'ThreadId'=$ev.ThreadId;
+                                   'MachineName'=$ev.MachineName;
+                                   'TimeCreated'=[System.DateTime]$ev.TimeCreated;
+                                   'LevelDisplayName'=$ev.LevelDisplayName;
+                                   'OpcodeDisplayName'=$ev.OpcodeDisplayName;
+                                   'TaskDisplayName'=$ev.TaskDisplayName;
+                                   'KeywordsDisplayNames'=$ev.KeywordsDisplayNames;
+                                   'Message'=$ev.Message; } ;break
+                            }
+                        }
+
+
+                        $obj = New-Object -TypeName psobject -Property $propos
+                        $obj.PSObject.TypeNames.Insert(0,'LogAnalysis.LogDatabase.TableContent')
+                        Write-Output $obj
+
+                
+                    }
+                }                         
+            } elseif ($LogName -eq "Application") { 
+                if ($Newest -eq 0){
+                    $eve = Get-LogDatabaseData -connectionString $LogConnectionString `
+                                               -isSQLServer `
+                                               -query "SELECT Id, EventId, LogName, TimeCreated from $ta
+                                                       WHERE LogName='Application'
+                                                       ORDER BY Id DESC"
+                    foreach ($ev in $eve){
+                        # Creating the custom output
+                        switch ($ta) {
+                            "events"{
+                        
+                            #[System.DateTime]$dt3 = $ev.TimeCreated
+    
+                            $propos = @{'dBIndex'=$ev.Id;
+                                              'EventId'=$ev.EventId;
+                                              'LogName'=$ev.LogName;
+                                              'TimeCreated'=[System.DateTime]$ev.TimeCreated;
+                                              } ;break
+                            } 
+                
+                        }  
+                        
+                        $obj = New-Object -TypeName psobject -Property $propos
+                        $obj.PSObject.TypeNames.Insert(0,'LogAnalysis.LogDatabase.TableContent')
+                        Write-Output $obj                                 
+                    }
+
+                } else {
+                    $eve = Get-LogDatabaseData -connectionString $LogConnectionString `
+                                        -isSQLServer `
+                                        -query "SELECT TOP $Newest * from $ta
+                                                WHERE LogName='Application'
+                                                ORDER BY Id DESC"
+
+                    # Database returns events (number>0)
+                    # with the following foreach loop we make a custom object for each event that came from database
+                
+                    foreach ($ev in $eve){
+
+                
+                        # Creating the custom output
+                        switch ($ta) {
+                            "events"{
+                        
+                            #[System.DateTime]$dt4 = $ev.TimeCreated
+
+                            $propos = @{'dBIndex'=$ev.Id;
+                                   'EventId'=$ev.EventId;
+                                   'EventVersion'=$ev.EventVersion;
+                                   'EventLevel'=$ev.EventLevel;
+                                   'Task'=$ev.Task;
+                                   'OpCode'=$ev.OpCode;
+                                   'Keywords'=$ev.Keywords;
+                                   'EventRecordId'=$ev.EventRecordId;
+                                   'ProviderName'=$ev.ProviderName;
+                                   'ProviderId'=$ev.ProviderId;
+                                   'LogName'=$ev.LogName;
+                                   'ProcessId'=$ev.ProcessId;
+                                   'ThreadId'=$ev.ThreadId;
+                                   'MachineName'=$ev.MachineName;
+                                   'TimeCreated'=[System.DateTime]$ev.TimeCreated;
+                                   'LevelDisplayName'=$ev.LevelDisplayName;
+                                   'OpcodeDisplayName'=$ev.OpcodeDisplayName;
+                                   'TaskDisplayName'=$ev.TaskDisplayName;
+                                   'KeywordsDisplayNames'=$ev.KeywordsDisplayNames;
+                                   'Message'=$ev.Message; } ;break
+                            }
+                
+                        }                                            
+                        
+                        $obj = New-Object -TypeName psobject -Property $propos
+                        $obj.PSObject.TypeNames.Insert(0,'LogAnalysis.LogDatabase.TableContent')
+                        Write-Output $obj
+                    }
+                }
+                        
+                
+
+            } elseif ($LogName -eq "Security") {                
+                if ($Newest -eq 0){
+
+                    if ($SecurityType -eq "Failure"){
+                        $eve = get-logdatabasedata -connectionstring $logconnectionstring `
+                                                   -issqlserver `
+                                                   -query "select Id, EventId, LogName, TimeCreated from $ta                                                       
+                                                           where logname='security' and eventid = 4625
+                                                           order by id desc"
+                        foreach ($ev in $eve){
+                            # Creating the custom output
+                            switch ($ta) {
+                                "events"{
+                                
+                                #[System.DateTime]$dt5 = $ev.TimeCreated
+        
+                                $propos = @{'dBIndex'=$ev.Id;
+                                                'EventId'=$ev.EventId;
+                                                'LogName'=$ev.LogName;
+                                                'TimeCreated'=[System.DateTime]$ev.TimeCreated;
+                                               } ;break
+                                } 
+                
+                            }  
+                        
+                            $obj = New-Object -TypeName psobject -Property $propos
+                            $obj.PSObject.TypeNames.Insert(0,'LogAnalysis.LogDatabase.TableContent')
+                            Write-Output $obj                           
+                        }
+
+
+
+
+                    } elseif ($SecurityType -eq "Success"){
+
+                        $eve = Get-LogDatabaseData -connectionString $LogConnectionString `
+                                                   -isSQLServer `
+                                                   -query "SELECT Id, EventId, LogName, TimeCreated from $ta                                                       
+                                                           WHERE LogName='Security' AND EventId = 4624
+                                                           ORDER BY Id DESC"
+                        foreach ($ev in $eve){
+                            # Creating the custom output
+                            switch ($ta) {
+                                "events"{
+                                
+                                #[System.DateTime]$dt5 = $ev.TimeCreated
+        
+                                $propos = @{'dBIndex'=$ev.Id;
+                                                'EventId'=$ev.EventId;
+                                                'LogName'=$ev.LogName;
+                                                'TimeCreated'=[System.DateTime]$ev.TimeCreated;
+                                                } ;break
+                                } 
+                
+                            }  
+                        
+                            $obj = New-Object -TypeName psobject -Property $propos
+                            $obj.PSObject.TypeNames.Insert(0,'LogAnalysis.LogDatabase.TableContent')
+                            Write-Output $obj                           
+                        }
+
+
+
+                    } elseif ($SecurityType -eq ""){
+                        $eve = Get-LogDatabaseData -connectionString $LogConnectionString `
+                                                   -isSQLServer `
+                                                   -query "SELECT * from $ta                                                       
+                                                           WHERE LogName='Security'
+                                                           ORDER BY Id DESC"
+                        foreach ($ev in $eve){
+                            # Creating the custom output
+                            switch ($ta) {
+                                "events"{
+                                
+                                #[System.DateTime]$dt5 = $ev.TimeCreated
+        
+                                $propos = @{'dBIndex'=$ev.Id;
+                                                'EventId'=$ev.EventId;
+                                                'EventVersion'=$ev.EventVersion;
+                                                'EventLevel'=$ev.EventLevel;
+                                                'Task'=$ev.Task;
+                                                'OpCode'=$ev.OpCode;
+                                                'Keywords'=$ev.Keywords;
+                                                'EventRecordId'=$ev.EventRecordId;
+                                                'ProviderName'=$ev.ProviderName;
+                                                'ProviderId'=$ev.ProviderId;
+                                                'LogName'=$ev.LogName;
+                                                'ProcessId'=$ev.ProcessId;
+                                                'ThreadId'=$ev.ThreadId;
+                                                'MachineName'=$ev.MachineName;
+                                                'TimeCreated'=[System.DateTime]$ev.TimeCreated;
+                                                'LevelDisplayName'=$ev.LevelDisplayName;
+                                                'OpcodeDisplayName'=$ev.OpcodeDisplayName;
+                                                'TaskDisplayName'=$ev.TaskDisplayName;
+                                                'KeywordsDisplayNames'=$ev.KeywordsDisplayNames;
+                                                'Message'=$ev.Message; } ;break
+                                } 
+                
+                            }  
+                        
+                            $obj = New-Object -TypeName psobject -Property $propos
+                            $obj.PSObject.TypeNames.Insert(0,'LogAnalysis.LogDatabase.TableContent')
+                            Write-Output $obj                                 
+                        }
+
+                    }
+                    
+
+                } else {
+                    $eve = Get-LogDatabaseData -connectionString $LogConnectionString `
+                                        -isSQLServer `
+                                        -query "SELECT TOP $Newest * from $ta
+                                                WHERE LogName='Security'
+                                                ORDER BY Id DESC"
+
+                    # Database returns events (number>0)
+                    # with the following foreach loop we make a custom object for each event that came from database
+                
+                    foreach ($ev in $eve){
+
+                
+                        # Creating the custom output
+                        switch ($ta) {
+                            "events"{
+                        
+                            #[System.DateTime]$dt6 = $ev.TimeCreated
+
+                            $propos = @{'dBIndex'=$ev.Id;
+                                   'EventId'=$ev.EventId;
+                                   'EventVersion'=$ev.EventVersion;
+                                   'EventLevel'=$ev.EventLevel;
+                                   'Task'=$ev.Task;
+                                   'OpCode'=$ev.OpCode;
+                                   'Keywords'=$ev.Keywords;
+                                   'EventRecordId'=$ev.EventRecordId;
+                                   'ProviderName'=$ev.ProviderName;
+                                   'ProviderId'=$ev.ProviderId;
+                                   'LogName'=$ev.LogName;
+                                   'ProcessId'=$ev.ProcessId;
+                                   'ThreadId'=$ev.ThreadId;
+                                   'MachineName'=$ev.MachineName;
+                                   'TimeCreated'=[System.DateTime]$ev.TimeCreated;
+                                   'LevelDisplayName'=$ev.LevelDisplayName;
+                                   'OpcodeDisplayName'=$ev.OpcodeDisplayName;
+                                   'TaskDisplayName'=$ev.TaskDisplayName;
+                                   'KeywordsDisplayNames'=$ev.KeywordsDisplayNames;
+                                   'Message'=$ev.Message; } ;break
+                            }
+                
+                        }                                            
+                        
+                        $obj = New-Object -TypeName psobject -Property $propos
+                        $obj.PSObject.TypeNames.Insert(0,'LogAnalysis.LogDatabase.TableContent')
+                        Write-Output $obj
+                    }
+                }
+
+
+
+
+            } elseif ($LogName -eq "System") {
+                
+                 if ($Newest -eq 0){
+                    $eve = Get-LogDatabaseData -connectionString $LogConnectionString `
+                                               -isSQLServer `
+                                               -query "SELECT Id, EventId, LogName, TimeCreated from $ta                                                       
+                                                       WHERE LogName='System'
+                                                       ORDER BY Id DESC"
+                    foreach ($ev in $eve){
+                        # Creating the custom output
+                        switch ($ta) {
+                            "events"{
+                        
+                            #[System.DateTime]$dt7 = $ev.TimeCreated
+    
+                            $propos = @{'dBIndex'=$ev.Id;
+                                              'EventId'=$ev.EventId;
+                                              'LogName'=$ev.LogName;
+                                              'TimeCreated'=[System.DateTime]$ev.TimeCreated;
+                                              } ;break
+                            } 
+                
+                        }  
+                        
+                        $obj = New-Object -TypeName psobject -Property $propos
+                        $obj.PSObject.TypeNames.Insert(0,'LogAnalysis.LogDatabase.TableContent')
+                        Write-Output $obj                                 
+                    }
+
+                } else {
+                    $eve = Get-LogDatabaseData -connectionString $LogConnectionString `
+                                        -isSQLServer `
+                                        -query "SELECT TOP $Newest * from $ta                                                                    
+                                                WHERE LogName='System'
+                                                ORDER BY Id DESC"
+
+                    # Database returns events (number>0)
+                    # with the following foreach loop we make a custom object for each event that came from database
+                
+                    foreach ($ev in $eve){
+
+                
+                        # Creating the custom output
+                        switch ($ta) {
+                            "events"{
+                        
+                            #[System.DateTime]$dt8 = $ev.TimeCreated
+
+                            $propos = @{'dBIndex'=$ev.Id;
+                                   'EventId'=$ev.EventId;
+                                   'EventVersion'=$ev.EventVersion;
+                                   'EventLevel'=$ev.EventLevel;
+                                   'Task'=$ev.Task;
+                                   'OpCode'=$ev.OpCode;
+                                   'Keywords'=$ev.Keywords;
+                                   'EventRecordId'=$ev.EventRecordId;
+                                   'ProviderName'=$ev.ProviderName;
+                                   'ProviderId'=$ev.ProviderId;
+                                   'LogName'=$ev.LogName;
+                                   'ProcessId'=$ev.ProcessId;
+                                   'ThreadId'=$ev.ThreadId;
+                                   'MachineName'=$ev.MachineName;
+                                   'TimeCreated'=[System.DateTime]$ev.TimeCreated;
+                                   'LevelDisplayName'=$ev.LevelDisplayName;
+                                   'OpcodeDisplayName'=$ev.OpcodeDisplayName;
+                                   'TaskDisplayName'=$ev.TaskDisplayName;
+                                   'KeywordsDisplayNames'=$ev.KeywordsDisplayNames;
+                                   'Message'=$ev.Message; } ;break
+                            }
+                
+                        }                                            
+                        
+                        $obj = New-Object -TypeName psobject -Property $propos
+                        $obj.PSObject.TypeNames.Insert(0,'LogAnalysis.LogDatabase.TableContent')
+                        Write-Output $obj
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+<#
+.Synopsis
+   Short description
+.DESCRIPTION
+   Long description
+.EXAMPLE
+   Example of how to use this cmdlet
+.EXAMPLE
+   Another example of how to use this cmdlet
+#>
+function Get-TableRowNumber
+{
+    [CmdletBinding()]
+    [OutputType([int])]
+    Param
+    (
+        # Param1 help description
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true,
+                   Position=0)]
+        [String[]]$Table,
+        [String]$After,
+        [string]$LogName
+    )
+    Process
+    {
+        foreach ($ta in $Table){
+
+            #$After = $After.Substring(
+
+            if ($After -eq 0){
+                  
+                [int]$number = (Get-LogDatabaseData -connectionString $LogConnectionString `
+                                 -isSQLServer `
+                                 -query "SELECT COUNT(*) from $ta").item(0)
+
+                Write-Output $number
+
+                if ($LogName -ne ""){
+
+
+
+                }
+
+            } else {
+
+                [int]$number = (Get-LogDatabaseData -connectionString $LogConnectionString `
+                                 -isSQLServer `
+                                 -query "SELECT COUNT(*) AS Count from $ta
+                                         WHERE TimeCreated >= '$After'").Count
+
+                Write-Output $number
+
+
+            }
+
+        
+        }
+    }
+}
+
+
+<#
+.Synopsis
+   Short description
+.DESCRIPTION
+   Long description
+.EXAMPLE
+   Example of how to use this cmdlet
+.EXAMPLE
+   Another example of how to use this cmdlet
+#>
+function Get-TableColumnNumber
+{
+    [CmdletBinding()]
+    [OutputType([int])]
+    Param
+    (
+        # Param1 help description
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true,
+                   Position=0)]
+        [String[]]$Table
+    )
+    Process
+    {
+         foreach ($ta in $Table){
+        
+             Get-LogDatabaseData -connectionString $LogConnectionString `
+                                 -isSQLServer `
+                                 -query "select count(*)
+                                         from LogDB.sys.columns
+                                         where object_id=OBJECT_ID('$ta')"
+        
+        }
+    }
+}
+
+
+<#
+.Synopsis
+   Short description
+.DESCRIPTION
+   Long description
+.EXAMPLE
+   Get-DatabaseAvailableTableNames | select table_name
+.EXAMPLE
+   Another example of how to use this cmdlet
+#>
+function Get-DatabaseAvailableTableNames
+{
+    [CmdletBinding()]
+    #[OutputType([String])]
+    Param
+    (     
+    )
+    Process
+    {
+
+        Get-LogDatabaseData -connectionString $LogConnectionString `
+                                 -isSQLServer `
+                                 -query "SELECT TABLE_NAME
+                                         FROM INFORMATION_SCHEMA.TABLES
+                                         WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_CATALOG='LogDB'"
+
+                                     
+    }
+}
+
+<#
+.Synopsis
+   Short description
+.DESCRIPTION
+   Long description
+.EXAMPLE
+   Example of how to use this cmdlet
+.EXAMPLE
+   Another example of how to use this cmdlet
+#>
+function Get-LogTypesFromDatabase
+{
+    [CmdletBinding()]
+    [OutputType([int])]
+    Param
+    (
+    )
+    Process
+    {
+        Get-LogDatabaseData -connectionString $LogConnectionString `
+                            -isSQLServer `
+                            -query "Select * from LOG_TYPE"
+    }
+}
+
+
 
 
 
@@ -229,8 +947,7 @@ function Set-LogEventInDatabase
                 } elseif ($ev.Id -eq 4625) {
 
                    [String]$tableName = "DETAILS4625"
-                        $ev.logname
-                        $ev.id
+
                     if (!((Get-DatabaseAvailableTableNames).table_name).contains($tableName)){
                         
                         Write-Verbose "Table $tableName not found. It will be created."
@@ -816,698 +1533,6 @@ function Set-LogEventInDatabase
     }
 }
 
-
-
-
-
-<#
-.Synopsis
-   Short description
-.DESCRIPTION
-   Long description
-.EXAMPLE
-   Example of how to use this cmdlet
-.EXAMPLE
-   Another example of how to use this cmdlet
-#>
-function Get-TableContentsFromDatabase
-{
-    [CmdletBinding()]
-    #[OutputType([LogAnalysis.LogDatabase.TableContent[]])]
-    Param
-    (
-        # Param1 help description
-        [Parameter(Mandatory=$true,
-                   ValueFromPipelineByPropertyName=$true,
-                   Position=0)]
-        [String[]]$Table,
-        # Param2 help description
-        [int]$Newest,
-        [String]$LogName,
-        $SecurityType
-
-    )
-    Process
-    {
-        foreach ($ta in $Table){
-            
-            if ($LogName -eq "") {
-            
-                if ($Newest -eq 0){
-                    <#
-                    $eve = Get-LogDatabaseData -connectionString $LogConnectionString `
-                                               -isSQLServer `
-                                               -query "SELECT * from $ta
-                                                       ORDER BY Id DESC"
-                                                       #>
-                    $eve = Get-LogDatabaseData -connectionString $LogConnectionString `
-                                               -isSQLServer `
-                                               -query "SELECT Id, EventId, LogName, TimeCreated from $ta
-                                                       ORDER BY Id DESC"
-
-                    foreach ($ev in $eve){                
-                        # Creating the custom output
-                        switch ($ta) {
-                            "events"{                        
-                            
-                            $propos = @{'dBIndex'=$ev.Id;
-                                              'EventId'=$ev.EventId; 
-                                              'LogName'=$ev.LogName;
-                                              'TimeCreated'=[System.DateTime]$ev.TimeCreated;
-                                               } ;break
-                            }                 
-                        }     
-                        $obj = New-Object -TypeName psobject -Property $propos
-                        $obj.PSObject.TypeNames.Insert(0,'LogAnalysis.LogDatabase.TableContent')
-                        Write-Output $obj
-                    }
-                } else {
-                    $eve = Get-LogDatabaseData -connectionString $LogConnectionString `
-                                        -isSQLServer `
-                                        -query "SELECT TOP $Newest * from $ta                    
-                                                ORDER BY Id DESC"
-
-                    # Database returns events (number>0)
-                    # with the following foreach loop we make a custom object for each event that came from database
-                
-                    foreach ($ev in $eve){
-                        # Creating the custom output
-                        switch ($ta) {
-                            "events"{
-                            #[System.DateTime]$dt2 = $ev.TimeCreated
-
-                            $propos = @{'dBIndex'=$ev.Id;
-                                   'EventId'=$ev.EventId;
-                                   'EventVersion'=$ev.EventVersion;
-                                   'EventLevel'=$ev.EventLevel;
-                                   'Task'=$ev.Task;
-                                   'OpCode'=$ev.OpCode;
-                                   'Keywords'=$ev.Keywords;
-                                   'EventRecordId'=$ev.EventRecordId;
-                                   'ProviderName'=$ev.ProviderName;
-                                   'ProviderId'=$ev.ProviderId;
-                                   'LogName'=$ev.LogName;
-                                   'ProcessId'=$ev.ProcessId;
-                                   'ThreadId'=$ev.ThreadId;
-                                   'MachineName'=$ev.MachineName;
-                                   'TimeCreated'=[System.DateTime]$ev.TimeCreated;
-                                   'LevelDisplayName'=$ev.LevelDisplayName;
-                                   'OpcodeDisplayName'=$ev.OpcodeDisplayName;
-                                   'TaskDisplayName'=$ev.TaskDisplayName;
-                                   'KeywordsDisplayNames'=$ev.KeywordsDisplayNames;
-                                   'Message'=$ev.Message; } ;break
-                            }
-                        }
-
-
-                        $obj = New-Object -TypeName psobject -Property $propos
-                        $obj.PSObject.TypeNames.Insert(0,'LogAnalysis.LogDatabase.TableContent')
-                        Write-Output $obj
-
-                
-                    }
-                }                         
-            } elseif ($LogName -eq "Application") { 
-                if ($Newest -eq 0){
-                    $eve = Get-LogDatabaseData -connectionString $LogConnectionString `
-                                               -isSQLServer `
-                                               -query "SELECT Id, EventId, LogName, TimeCreated from $ta
-                                                       WHERE LogName='Application'
-                                                       ORDER BY Id DESC"
-                    foreach ($ev in $eve){
-                        # Creating the custom output
-                        switch ($ta) {
-                            "events"{
-                        
-                            #[System.DateTime]$dt3 = $ev.TimeCreated
-    
-                            $propos = @{'dBIndex'=$ev.Id;
-                                              'EventId'=$ev.EventId;
-                                              'LogName'=$ev.LogName;
-                                              'TimeCreated'=[System.DateTime]$ev.TimeCreated;
-                                              } ;break
-                            } 
-                
-                        }  
-                        
-                        $obj = New-Object -TypeName psobject -Property $propos
-                        $obj.PSObject.TypeNames.Insert(0,'LogAnalysis.LogDatabase.TableContent')
-                        Write-Output $obj                                 
-                    }
-
-                } else {
-                    $eve = Get-LogDatabaseData -connectionString $LogConnectionString `
-                                        -isSQLServer `
-                                        -query "SELECT TOP $Newest * from $ta
-                                                WHERE LogName='Application'
-                                                ORDER BY Id DESC"
-
-                    # Database returns events (number>0)
-                    # with the following foreach loop we make a custom object for each event that came from database
-                
-                    foreach ($ev in $eve){
-
-                
-                        # Creating the custom output
-                        switch ($ta) {
-                            "events"{
-                        
-                            #[System.DateTime]$dt4 = $ev.TimeCreated
-
-                            $propos = @{'dBIndex'=$ev.Id;
-                                   'EventId'=$ev.EventId;
-                                   'EventVersion'=$ev.EventVersion;
-                                   'EventLevel'=$ev.EventLevel;
-                                   'Task'=$ev.Task;
-                                   'OpCode'=$ev.OpCode;
-                                   'Keywords'=$ev.Keywords;
-                                   'EventRecordId'=$ev.EventRecordId;
-                                   'ProviderName'=$ev.ProviderName;
-                                   'ProviderId'=$ev.ProviderId;
-                                   'LogName'=$ev.LogName;
-                                   'ProcessId'=$ev.ProcessId;
-                                   'ThreadId'=$ev.ThreadId;
-                                   'MachineName'=$ev.MachineName;
-                                   'TimeCreated'=[System.DateTime]$ev.TimeCreated;
-                                   'LevelDisplayName'=$ev.LevelDisplayName;
-                                   'OpcodeDisplayName'=$ev.OpcodeDisplayName;
-                                   'TaskDisplayName'=$ev.TaskDisplayName;
-                                   'KeywordsDisplayNames'=$ev.KeywordsDisplayNames;
-                                   'Message'=$ev.Message; } ;break
-                            }
-                
-                        }                                            
-                        
-                        $obj = New-Object -TypeName psobject -Property $propos
-                        $obj.PSObject.TypeNames.Insert(0,'LogAnalysis.LogDatabase.TableContent')
-                        Write-Output $obj
-                    }
-                }
-                        
-                
-
-            } elseif ($LogName -eq "Security") {                
-                if ($Newest -eq 0){
-
-                    if ($SecurityType -eq "Failure"){
-                        $eve = get-logdatabasedata -connectionstring $logconnectionstring `
-                                                   -issqlserver `
-                                                   -query "select Id, EventId, LogName, TimeCreated from $ta                                                       
-                                                           where logname='security' and eventid = 4625
-                                                           order by id desc"
-                        foreach ($ev in $eve){
-                            # Creating the custom output
-                            switch ($ta) {
-                                "events"{
-                                
-                                #[System.DateTime]$dt5 = $ev.TimeCreated
-        
-                                $propos = @{'dBIndex'=$ev.Id;
-                                                'EventId'=$ev.EventId;
-                                                'LogName'=$ev.LogName;
-                                                'TimeCreated'=[System.DateTime]$ev.TimeCreated;
-                                               } ;break
-                                } 
-                
-                            }  
-                        
-                            $obj = New-Object -TypeName psobject -Property $propos
-                            $obj.PSObject.TypeNames.Insert(0,'LogAnalysis.LogDatabase.TableContent')
-                            Write-Output $obj                           
-                        }
-
-
-
-
-                    } elseif ($SecurityType -eq "Success"){
-
-                        $eve = Get-LogDatabaseData -connectionString $LogConnectionString `
-                                                   -isSQLServer `
-                                                   -query "SELECT Id, EventId, LogName, TimeCreated from $ta                                                       
-                                                           WHERE LogName='Security' AND EventId = 4624
-                                                           ORDER BY Id DESC"
-                        foreach ($ev in $eve){
-                            # Creating the custom output
-                            switch ($ta) {
-                                "events"{
-                                
-                                #[System.DateTime]$dt5 = $ev.TimeCreated
-        
-                                $propos = @{'dBIndex'=$ev.Id;
-                                                'EventId'=$ev.EventId;
-                                                'LogName'=$ev.LogName;
-                                                'TimeCreated'=[System.DateTime]$ev.TimeCreated;
-                                                } ;break
-                                } 
-                
-                            }  
-                        
-                            $obj = New-Object -TypeName psobject -Property $propos
-                            $obj.PSObject.TypeNames.Insert(0,'LogAnalysis.LogDatabase.TableContent')
-                            Write-Output $obj                           
-                        }
-
-
-
-                    } elseif ($SecurityType -eq ""){
-                        $eve = Get-LogDatabaseData -connectionString $LogConnectionString `
-                                                   -isSQLServer `
-                                                   -query "SELECT * from $ta                                                       
-                                                           WHERE LogName='Security'
-                                                           ORDER BY Id DESC"
-                        foreach ($ev in $eve){
-                            # Creating the custom output
-                            switch ($ta) {
-                                "events"{
-                                
-                                #[System.DateTime]$dt5 = $ev.TimeCreated
-        
-                                $propos = @{'dBIndex'=$ev.Id;
-                                                'EventId'=$ev.EventId;
-                                                'EventVersion'=$ev.EventVersion;
-                                                'EventLevel'=$ev.EventLevel;
-                                                'Task'=$ev.Task;
-                                                'OpCode'=$ev.OpCode;
-                                                'Keywords'=$ev.Keywords;
-                                                'EventRecordId'=$ev.EventRecordId;
-                                                'ProviderName'=$ev.ProviderName;
-                                                'ProviderId'=$ev.ProviderId;
-                                                'LogName'=$ev.LogName;
-                                                'ProcessId'=$ev.ProcessId;
-                                                'ThreadId'=$ev.ThreadId;
-                                                'MachineName'=$ev.MachineName;
-                                                'TimeCreated'=[System.DateTime]$ev.TimeCreated;
-                                                'LevelDisplayName'=$ev.LevelDisplayName;
-                                                'OpcodeDisplayName'=$ev.OpcodeDisplayName;
-                                                'TaskDisplayName'=$ev.TaskDisplayName;
-                                                'KeywordsDisplayNames'=$ev.KeywordsDisplayNames;
-                                                'Message'=$ev.Message; } ;break
-                                } 
-                
-                            }  
-                        
-                            $obj = New-Object -TypeName psobject -Property $propos
-                            $obj.PSObject.TypeNames.Insert(0,'LogAnalysis.LogDatabase.TableContent')
-                            Write-Output $obj                                 
-                        }
-
-                    }
-                    
-
-                } else {
-                    $eve = Get-LogDatabaseData -connectionString $LogConnectionString `
-                                        -isSQLServer `
-                                        -query "SELECT TOP $Newest * from $ta
-                                                WHERE LogName='Security'
-                                                ORDER BY Id DESC"
-
-                    # Database returns events (number>0)
-                    # with the following foreach loop we make a custom object for each event that came from database
-                
-                    foreach ($ev in $eve){
-
-                
-                        # Creating the custom output
-                        switch ($ta) {
-                            "events"{
-                        
-                            #[System.DateTime]$dt6 = $ev.TimeCreated
-
-                            $propos = @{'dBIndex'=$ev.Id;
-                                   'EventId'=$ev.EventId;
-                                   'EventVersion'=$ev.EventVersion;
-                                   'EventLevel'=$ev.EventLevel;
-                                   'Task'=$ev.Task;
-                                   'OpCode'=$ev.OpCode;
-                                   'Keywords'=$ev.Keywords;
-                                   'EventRecordId'=$ev.EventRecordId;
-                                   'ProviderName'=$ev.ProviderName;
-                                   'ProviderId'=$ev.ProviderId;
-                                   'LogName'=$ev.LogName;
-                                   'ProcessId'=$ev.ProcessId;
-                                   'ThreadId'=$ev.ThreadId;
-                                   'MachineName'=$ev.MachineName;
-                                   'TimeCreated'=[System.DateTime]$ev.TimeCreated;
-                                   'LevelDisplayName'=$ev.LevelDisplayName;
-                                   'OpcodeDisplayName'=$ev.OpcodeDisplayName;
-                                   'TaskDisplayName'=$ev.TaskDisplayName;
-                                   'KeywordsDisplayNames'=$ev.KeywordsDisplayNames;
-                                   'Message'=$ev.Message; } ;break
-                            }
-                
-                        }                                            
-                        
-                        $obj = New-Object -TypeName psobject -Property $propos
-                        $obj.PSObject.TypeNames.Insert(0,'LogAnalysis.LogDatabase.TableContent')
-                        Write-Output $obj
-                    }
-                }
-
-
-
-
-            } elseif ($LogName -eq "System") {
-                
-                 if ($Newest -eq 0){
-                    $eve = Get-LogDatabaseData -connectionString $LogConnectionString `
-                                               -isSQLServer `
-                                               -query "SELECT Id, EventId, LogName, TimeCreated from $ta                                                       
-                                                       WHERE LogName='System'
-                                                       ORDER BY Id DESC"
-                    foreach ($ev in $eve){
-                        # Creating the custom output
-                        switch ($ta) {
-                            "events"{
-                        
-                            #[System.DateTime]$dt7 = $ev.TimeCreated
-    
-                            $propos = @{'dBIndex'=$ev.Id;
-                                              'EventId'=$ev.EventId;
-                                              'LogName'=$ev.LogName;
-                                              'TimeCreated'=[System.DateTime]$ev.TimeCreated;
-                                              } ;break
-                            } 
-                
-                        }  
-                        
-                        $obj = New-Object -TypeName psobject -Property $propos
-                        $obj.PSObject.TypeNames.Insert(0,'LogAnalysis.LogDatabase.TableContent')
-                        Write-Output $obj                                 
-                    }
-
-                } else {
-                    $eve = Get-LogDatabaseData -connectionString $LogConnectionString `
-                                        -isSQLServer `
-                                        -query "SELECT TOP $Newest * from $ta                                                                    
-                                                WHERE LogName='System'
-                                                ORDER BY Id DESC"
-
-                    # Database returns events (number>0)
-                    # with the following foreach loop we make a custom object for each event that came from database
-                
-                    foreach ($ev in $eve){
-
-                
-                        # Creating the custom output
-                        switch ($ta) {
-                            "events"{
-                        
-                            #[System.DateTime]$dt8 = $ev.TimeCreated
-
-                            $propos = @{'dBIndex'=$ev.Id;
-                                   'EventId'=$ev.EventId;
-                                   'EventVersion'=$ev.EventVersion;
-                                   'EventLevel'=$ev.EventLevel;
-                                   'Task'=$ev.Task;
-                                   'OpCode'=$ev.OpCode;
-                                   'Keywords'=$ev.Keywords;
-                                   'EventRecordId'=$ev.EventRecordId;
-                                   'ProviderName'=$ev.ProviderName;
-                                   'ProviderId'=$ev.ProviderId;
-                                   'LogName'=$ev.LogName;
-                                   'ProcessId'=$ev.ProcessId;
-                                   'ThreadId'=$ev.ThreadId;
-                                   'MachineName'=$ev.MachineName;
-                                   'TimeCreated'=[System.DateTime]$ev.TimeCreated;
-                                   'LevelDisplayName'=$ev.LevelDisplayName;
-                                   'OpcodeDisplayName'=$ev.OpcodeDisplayName;
-                                   'TaskDisplayName'=$ev.TaskDisplayName;
-                                   'KeywordsDisplayNames'=$ev.KeywordsDisplayNames;
-                                   'Message'=$ev.Message; } ;break
-                            }
-                
-                        }                                            
-                        
-                        $obj = New-Object -TypeName psobject -Property $propos
-                        $obj.PSObject.TypeNames.Insert(0,'LogAnalysis.LogDatabase.TableContent')
-                        Write-Output $obj
-                    }
-                }
-            }
-        }
-    }
-}
-
-
-
-
-
-<#
-.Synopsis
-   Short description
-.DESCRIPTION
-   
-   This cmdlet Clear-TableContentsFromDatabase helps you interact with the LogDatabase
-   and erase the contents of a specific table. You can pass multible tables at once. See examples.
-   It also automatically sets the autoincrement property for the tables to the 0 value.
-   
-
-.PARAMETERS
-
-.EXAMPLE
-   Clear-TableContentsFromDatabase -Table LOG_TYPE, EVENTS
-#>
-function Clear-TableContentsFromDatabase
-{
-    [CmdletBinding()]
-    [OutputType([int])]
-    Param
-    (
-        # Param1 help description
-        [Parameter(Mandatory=$true,
-                   ValueFromPipelineByPropertyName=$true,
-                   Position=0)]
-        [String[]]$Table,
-        [int]$AutoIncrementValue=0
-
-    )
-    Process
-    {
-
-        foreach ($ta in $Table) {
-
-            $query = "DELETE FROM $ta"
-
-            Write-Verbose "Query will be '$query'"
-            Write-Verbose "Deleted Records FOR '$ta' Table:"
-            Invoke-LogDatabaseQuery -connection $LogConnectionString `
-                                    -isSQLServer `
-                                    -query $query
-
-            Set-TableAutoIncrementValue -Table: $ta -Value $AutoIncrementValue
-
-            Write-Verbose "AutoIncrementValue for Table $ta will be $AutoIncrementValue."
-            $AutoIncrementValue++
-            Write-Verbose "The first next new record for Table: $ta will have Id value = $AutoIncrementValue"
-        
-        }
-    }
-}
-
-
-
-
-<#
-.Synopsis
-   Short description
-.DESCRIPTION
-   Long description
-.EXAMPLE
-   Get-DatabaseAvailableTableNames | select table_name
-.EXAMPLE
-   Another example of how to use this cmdlet
-#>
-function Get-DatabaseAvailableTableNames
-{
-    [CmdletBinding()]
-    #[OutputType([String])]
-    Param
-    (     
-    )
-    Process
-    {
-
-        Get-LogDatabaseData -connectionString $LogConnectionString `
-                                 -isSQLServer `
-                                 -query "SELECT TABLE_NAME
-                                         FROM INFORMATION_SCHEMA.TABLES
-                                         WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_CATALOG='LogDB'"
-
-                                     
-    }
-}
-
-<#
-.Synopsis
-   Short description
-.DESCRIPTION
-   Long description
-.EXAMPLE
-   Example of how to use this cmdlet
-.EXAMPLE
-   Another example of how to use this cmdlet
-#>
-function Get-LastEventDateFromDatabase
-{
-    [CmdletBinding()]
-    #[OutputType([String])]
-    Param
-    (
-        # Param1 help description
-        [Parameter(Mandatory=$true,
-                   ValueFromPipelineByPropertyName=$true,
-                   Position=0)]
-        [string]$Table,
-        $After,
-        $LogName,
-        $SecurityType
-        # Param2 help description
-       
-        
-    )
-
-    Begin
-    {
-    }
-    Process
-    {
-        [string]$eve = (Get-LogDatabaseData -connectionString $LogConnectionString `
-                                               -isSQLServer `
-                                               -query "SELECT TOP 1 TimeCreated from $Table").TimeCreated
-       # Write-Output 
-       $eve                                         
-
-    }
-    End
-    {
-    }
-}
-
-<#
-.Synopsis
-   Short description
-.DESCRIPTION
-   Long description
-.EXAMPLE
-   Example of how to use this cmdlet
-.EXAMPLE
-   Another example of how to use this cmdlet
-#>
-function Get-TableRowNumber
-{
-    [CmdletBinding()]
-    [OutputType([int])]
-    Param
-    (
-        # Param1 help description
-        [Parameter(Mandatory=$true,
-                   ValueFromPipelineByPropertyName=$true,
-                   Position=0)]
-        [String[]]$Table,
-        [String]$After,
-        [string]$LogName
-    )
-    Process
-    {
-        foreach ($ta in $Table){
-
-            #$After = $After.Substring(
-
-            if ($After -eq 0){
-                  
-                [int]$number = (Get-LogDatabaseData -connectionString $LogConnectionString `
-                                 -isSQLServer `
-                                 -query "SELECT COUNT(*) from $ta").item(0)
-
-                Write-Output $number
-
-                if ($LogName -ne ""){
-
-
-
-                }
-
-            } else {
-
-                [int]$number = (Get-LogDatabaseData -connectionString $LogConnectionString `
-                                 -isSQLServer `
-                                 -query "SELECT COUNT(*) AS Count from $ta
-                                         WHERE TimeCreated >= '$After'").Count
-
-                Write-Output $number
-
-
-            }
-
-        
-        }
-    }
-}
-
-
-<#
-.Synopsis
-   Short description
-.DESCRIPTION
-   Long description
-.EXAMPLE
-   Example of how to use this cmdlet
-.EXAMPLE
-   Another example of how to use this cmdlet
-#>
-function Get-TableColumnNumber
-{
-    [CmdletBinding()]
-    [OutputType([int])]
-    Param
-    (
-        # Param1 help description
-        [Parameter(Mandatory=$true,
-                   ValueFromPipelineByPropertyName=$true,
-                   Position=0)]
-        [String[]]$Table
-    )
-    Process
-    {
-         foreach ($ta in $Table){
-        
-             Get-LogDatabaseData -connectionString $LogConnectionString `
-                                 -isSQLServer `
-                                 -query "select count(*)
-                                         from LogDB.sys.columns
-                                         where object_id=OBJECT_ID('$ta')"
-        
-        }
-    }
-}
-
-
-
-
-<#
-.Synopsis
-   Short description
-.DESCRIPTION
-   Long description
-.EXAMPLE
-   Example of how to use this cmdlet
-.EXAMPLE
-   Another example of how to use this cmdlet
-#>
-function Get-LogTypesFromDatabase
-{
-    [CmdletBinding()]
-    [OutputType([int])]
-    Param
-    (
-    )
-    Process
-    {
-        Get-LogDatabaseData -connectionString $LogConnectionString `
-                            -isSQLServer `
-                            -query "Select * from LOG_TYPE"
-    }
-}
 
 
 
@@ -2578,6 +2603,89 @@ function Get-EventsOccured
 }
 
 
+<#
+.Synopsis
+   Short description
+.DESCRIPTION
+   Long description
+.EXAMPLE
+   Example of how to use this cmdlet
+.EXAMPLE
+   Another example of how to use this cmdlet
+#>
+function Get-LogonIpAddresses
+{
+    [CmdletBinding()]
+    [OutputType([int])]
+    Param
+    (
+        # Param1 help description
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true,
+                   Position=0)]
+        [string]$LogonType,
+        [string]$After
+    )
+
+    Begin
+    {
+        $hashTable = [ordered]@{}
+    }
+    Process
+    {
+    
+        if ($LogonType -eq "Failure"){
+            $query = "SELECT SourceNetworkAddress, COUNT(*) AS Count FROM DETAILS4625
+                      WHERE TimeCreated >= '$After' 
+                      GROUP BY SourceNetworkAddress
+                      ORDER BY Count Desc"
+
+
+        } elseif($LogonType -eq "Success"){
+
+            $query = "SELECT SourceNetworkAddress, COUNT(*) AS Count FROM DETAILS4624
+                      WHERE TimeCreated >= '$After' 
+                      GROUP BY SourceNetworkAddress
+                      ORDER BY Count Desc"
+        } elseif ($LogonType -eq "Explicit"){
+
+            $query = "SELECT NetworkAddress, COUNT(*) AS Count FROM DETAILS4648
+                      WHERE TimeCreated >= '$After' 
+                      GROUP BY NetworkAddress
+                      ORDER BY Count Desc"
+
+        }
+        
+        
+    }
+    End
+    {
+        #phre to query kai twra epikoinwnei me th vash
+        $result = Get-LogDatabaseData -connectionString $LogConnectionString `
+                                 -isSQLServer `
+                                 -query $query
+
+        if ($LogonType -eq "Failure"){
+            foreach ($re in $result){
+                $hashTable.Add($re.SourceNetworkAddress, $re.Count)
+            }
+        } elseif($LogonType -eq "Success"){
+            foreach ($re in $result){
+                $hashTable.Add($re.SourceNetworkAddress, $re.Count)
+            }
+        } elseif ($LogonType -eq "Explicit"){
+            foreach ($re in $result){
+                $hashTable.Add($re.NetworkAddress, $re.Count)
+            }
+        }
+        
+        Write-Output $hashTable
+        
+        
+    }
+}
+
+
 
 
 
@@ -2604,5 +2712,7 @@ Export-ModuleMember -Function Set-LogNamesInDatabase,
                               Get-EventsGroupByEventId,
                               Get-TimeRangesForValues,
                               Get-EventsOccured,
-                              Get-TimeRangesForNames
+                              Get-TimeRangesForNames,
+                              Get-FailureLogonsIpAddresses,
+                              Get-LogonIpAddresses
                              
