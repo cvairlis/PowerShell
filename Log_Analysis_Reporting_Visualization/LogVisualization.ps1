@@ -178,25 +178,29 @@ function Get-LogVisualization
             $StartForm.Refresh()
             $Global:SysDataTimeLine = Get-HashTableForTimeLineChart -Table EVENTS -After $AfterDate -LogName System
 
+            $Status.Text = "Preparing IP Addresses information: Failure Logons..."
+            $StartForm.Refresh()
+            $Global:FailureLogonData = Get-LogonIpAddresses -LogonType Failure -After $AfterDate
+
+            $Status.Text = "Preparing IP Addresses information: Successful Logons..."
+            $StartForm.Refresh()
+            $Global:SuccessLogonData = Get-LogonIpAddresses -LogonType Success -After $AfterDate
+
+            $Status.Text = "Preparing IP Addresses information: Successful Logons
+using explicit credentials..."
+            $StartForm.Refresh()
+            $Global:ExplicitLogonData = Get-LogonIpAddresses -LogonType Explicit -After $AfterDate
+
+            
+
             $Status.Text = "Preparing events: Done..."
             $StartForm.Refresh()
             $close = $StartForm.close()
                 
         })
     
-        
-
-        
-
-        
-
         $show = $StartForm.ShowDialog()
          <# Preparing all information to be ready for visualization #>
-        
-     
-              
-       
-        
        
        
     }
@@ -541,6 +545,114 @@ Events Found:"
         #$Form.Activate()
 
 
+
+
+
+
+
+        <# PANEL 2 Components #>
+
+        
+        $FailureLogonLabel = New-Object System.Windows.Forms.Label
+        $FailureLogonLabel.Text = "Failure Logons: IP Addresses:"
+        $FailureLogonLabel.Size = '150,60'
+        $FailureLogonLabel.Location = '60,30'
+        $FailureLogonLabel.Font = New-object System.Drawing.Font('Calibri', 16, [System.Drawing.FontStyle]::Bold, [System.Drawing.GraphicsUnit]::Point,0)
+        
+        $panel2.Controls.Add($FailureLogonLabel)
+
+
+        $FailureLogonGroupTextBox = New-Object System.Windows.Forms.TextBox
+
+         # add textbox
+        $FailureLogonGroupTextBox.Multiline = $true
+        $FailureLogonGroupTextBox.Height = 300
+        $FailureLogonGroupTextBox.Width = 300
+        $FailureLogonGroupTextBox.Location ='60,100'
+        $FailureLogonGroupTextBox.BorderStyle = [System.Windows.Forms.BorderStyle]::Fixed3D
+        $FailureLogonGroupTextBox.ScrollBars = [System.Windows.Forms.ScrollBars]::Both
+        $FailureLogonGroupTextBox.ReadOnly = $true
+        $FailureLogonGroupTextBox.Font = New-Object System.Drawing.Font("Times New Roman",16)
+
+        $panel2.Controls.Add($FailureLogonGroupTextBox)
+
+        
+
+        $FailureLogonGroupTextBox.Text = $Global:FailureLogonData.getenumerator() | 
+                                                select Name, Value |
+                                                Sort-Object -Property Value -Descending  | 
+                                                Out-String -Width 30
+
+
+        $SuccessfulLogonLabel = New-Object System.Windows.Forms.Label
+        $SuccessfulLogonLabel.Text = "Successful Logons: IP Addresses:"
+        $SuccessfulLogonLabel.Size = '180,60'
+        $SuccessfulLogonLabel.Location = '400,30'
+        $SuccessfulLogonLabel.Font = New-object System.Drawing.Font('Calibri', 16, [System.Drawing.FontStyle]::Bold, [System.Drawing.GraphicsUnit]::Point,0)
+        
+        $panel2.Controls.Add($SuccessfulLogonLabel)
+
+
+
+        $SuccessfulLogonGroupTextBox = New-Object System.Windows.Forms.TextBox
+
+         # add textbox
+        $SuccessfulLogonGroupTextBox.Multiline = $true
+        $SuccessfulLogonGroupTextBox.Height = 300
+        $SuccessfulLogonGroupTextBox.Width = 300
+        $SuccessfulLogonGroupTextBox.Location ='400,100'
+        $SuccessfulLogonGroupTextBox.BorderStyle = [System.Windows.Forms.BorderStyle]::Fixed3D
+        $SuccessfulLogonGroupTextBox.ScrollBars = [System.Windows.Forms.ScrollBars]::Both
+        $SuccessfulLogonGroupTextBox.ReadOnly = $true
+        $SuccessfulLogonGroupTextBox.Font = New-Object System.Drawing.Font("Times New Roman",16)
+
+        $panel2.Controls.Add($SuccessfulLogonGroupTextBox)
+
+        
+
+        $SuccessfulLogonGroupTextBox.Text = $Global:SuccessLogonData.getenumerator() | 
+                                                select Name, Value |
+                                                Sort-Object -Property Value -Descending  | 
+                                                Out-String -Width 30
+
+
+                                                
+        $ExplicitLogonLabel = New-Object System.Windows.Forms.Label
+        $ExplicitLogonLabel.Text = "Explicit Credentials Logons: IP Addresses:"
+        $ExplicitLogonLabel.Size = '270,60'
+        $ExplicitLogonLabel.Location = '750,30'
+        $ExplicitLogonLabel.Font = New-object System.Drawing.Font('Calibri', 16, [System.Drawing.FontStyle]::Bold, [System.Drawing.GraphicsUnit]::Point,0)
+        
+        $panel2.Controls.Add($ExplicitLogonLabel)
+
+
+
+        $ExplicitLogonGroupTextBox = New-Object System.Windows.Forms.TextBox
+
+         # add textbox
+        $ExplicitLogonGroupTextBox.Multiline = $true
+        $ExplicitLogonGroupTextBox.Height = 300
+        $ExplicitLogonGroupTextBox.Width = 300
+        $ExplicitLogonGroupTextBox.Location ='750,100'
+        $ExplicitLogonGroupTextBox.BorderStyle = [System.Windows.Forms.BorderStyle]::Fixed3D
+        $ExplicitLogonGroupTextBox.ScrollBars = [System.Windows.Forms.ScrollBars]::Both
+        $ExplicitLogonGroupTextBox.ReadOnly = $true
+        $ExplicitLogonGroupTextBox.Font = New-Object System.Drawing.Font("Times New Roman",16)
+
+        $panel2.Controls.Add($ExplicitLogonGroupTextBox)
+
+        
+
+        $ExplicitLogonGroupTextBox.Text = $Global:ExplicitLogonData.getenumerator() | 
+                                                select Name, Value |
+                                                Sort-Object -Property Value -Descending  | 
+                                                Out-String -Width 30
+
+
+                                                    
+        
+
+        
 
         <######################>
         <# Event Handlers Start #>
@@ -1201,20 +1313,4 @@ Visualization"
 
 
 Get-LogVisualization -AfterDate (Get-PreparedForVisualization) -Type $Global:Type
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
