@@ -67,8 +67,8 @@ function Get-LogDatabaseData
     $dataset = New-Object -TypeName System.Data.DataSet
     #I put in var a to prevent to return an int value
     $a = $adapter.Fill($dataset)
-    $dataset.Tables[0]
     $connection.Close()
+
 
 
 }

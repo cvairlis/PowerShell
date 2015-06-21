@@ -2686,6 +2686,43 @@ function Get-LogonIpAddresses
 }
 
 
+<#
+.Synopsis
+   Short description
+.DESCRIPTION
+   Long description
+.EXAMPLE
+   Example of how to use this cmdlet
+.EXAMPLE
+   Another example of how to use this cmdlet
+#>
+function Get-TableContents
+{
+    [CmdletBinding()]
+    [OutputType([int])]
+    Param
+    (
+        # Param1 help description
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true,
+                   Position=0)]
+        [string]$query
+    )
+
+    Process
+    {
+        
+        #phre to query kai twra epikoinwnei me th vash
+        $result = Get-LogDatabaseData -connectionString $LogConnectionString `
+                                 -isSQLServer `
+                                 -query ($query)
+    }
+    End
+    {
+        Write-Output ($result.getenumerator() | select *)
+    }
+}
+
 
 
 
@@ -2714,5 +2751,6 @@ Export-ModuleMember -Function Set-LogNamesInDatabase,
                               Get-EventsOccured,
                               Get-TimeRangesForNames,
                               Get-FailureLogonsIpAddresses,
-                              Get-LogonIpAddresses
+                              Get-LogonIpAddresses,
+                              Get-TableContents
                              

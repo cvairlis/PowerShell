@@ -650,7 +650,135 @@ Events Found:"
 
 
                                                     
+        <# PANEL 3 #>
         
+        
+
+        $SQLQueryTextBox = New-Object System.Windows.Forms.TextBox
+        $SQLQueryTextBox.Text = 'put your sql query here'
+        $SQLQueryTextBox.Name = 'SQLQueryTextBox'
+        $SQLQueryTextBox.TabIndex = 0       
+        $SQLQueryTextBox.Size = '1090,200'       
+        $SQLQueryTextBox.Location = '45,20'
+        $SQLQueryTextBox.DataBindings.DefaultDataSourceUpdateMode = 0
+
+        $panel3.Controls.Add($SQLQueryTextBox)
+
+
+        $GetTableButton = New-Object System.Windows.Forms.Button
+
+        $GetTableButton.UseVisualStyleBackColor = $True
+        $GetTableButton.Text = 'Get Table'
+        $GetTableButton.DataBindings.DefaultDataSourceUpdateMode = 0
+        $GetTableButton.TabIndex = 1
+        $GetTableButton.Name = 'GetTableButton'        
+        $GetTableButton.Size = '180,30'
+        $GetTableButton.Location = '45,65'
+        
+        $panel3.Controls.Add($GetTableButton)
+
+        $GetTableButton.add_Click({
+            get-tablecontents -query $SQLQueryTextBox.Text | Out-GridView
+        
+        })
+
+        
+
+        $SaveTableToCsvButton = New-Object System.Windows.Forms.Button
+
+        $SaveTableToCsvButton.UseVisualStyleBackColor = $True
+        $SaveTableToCsvButton.Text = 'Save Table to CSV file'
+        $SaveTableToCsvButton.DataBindings.DefaultDataSourceUpdateMode = 0
+        $SaveTableToCsvButton.TabIndex = 1
+        $SaveTableToCsvButton.Name = 'SaveTableToCsvButton'        
+        $SaveTableToCsvButton.Size = '200,30'
+        $SaveTableToCsvButton.Location = '45,105'
+        $panel3.Controls.Add($SaveTableToCsvButton)
+       
+
+        $SaveTableToCsvButton.add_Click({
+
+        <#
+             # For EXE USE THIS 
+            [switch]$pathExists = Test-Path -Path ((Get-Location).Path+"\exportedData")
+            #FOR EXE USE THIS 
+            $path = (Get-Location).Path+"\exportedData"
+            # elegxei an o fakelos exportedData yparxei!
+            # an den yparxei ton dhmiourgei kai vazei ekei mesa tis ta csv kai ta html
+            if (!$pathExists){
+                New-Item -ItemType Directory -Force -Path $path
+            }
+            
+           #>
+             # FOR SCRIPT USE THIS 
+            [switch]$pathExists = Test-Path -Path $PSScriptRoot\exportedData
+            $path = $PSScriptRoot+"\exportedData"
+
+            #write-host $path
+            # elegxei an o fakelos chartsImages yparxei!
+            # an den yparxei ton dhmiourgei kai vazei ekei mesa tis eikones
+            if (!$pathExists){
+                New-Item -ItemType Directory -Force -Path $PSScriptRoot\exportedData 
+            }
+           
+            [string]$fileName = (get-date).ToString("dd-MMM-yyyy-HH-mm-ss_")      
+
+            $fileName += ($SQLQueryTextBox.Text.Replace(" ","_")).Replace("*","All")
+            #
+           #write-host "$path\$fileName.csv"
+
+
+            get-tablecontents -query $SQLQueryTextBox.Text | export-csv -Path ("$path\$fileName.csv")
+        
+        })
+
+        $SaveTableToHtmButton = New-Object System.Windows.Forms.Button
+
+        $SaveTableToHtmButton.UseVisualStyleBackColor = $True
+        $SaveTableToHtmButton.Text = 'Save Table to HTM file'
+        $SaveTableToHtmButton.DataBindings.DefaultDataSourceUpdateMode = 0
+        $SaveTableToHtmButton.TabIndex = 1
+        $SaveTableToHtmButton.Name = 'SaveTableToCsvButton'        
+        $SaveTableToHtmButton.Size = '200,30'
+        $SaveTableToHtmButton.Location = '45,150'
+        $panel3.Controls.Add($SaveTableToHtmButton)
+       
+
+        $SaveTableToHtmButton.add_Click({
+
+        <#
+             # For EXE USE THIS 
+            [switch]$pathExists = Test-Path -Path ((Get-Location).Path+"\exportedData")
+            #FOR EXE USE THIS 
+            $path = (Get-Location).Path+"\exportedData"
+            # elegxei an o fakelos exportedData yparxei!
+            # an den yparxei ton dhmiourgei kai vazei ekei mesa tis ta csv kai ta html
+            if (!$pathExists){
+                New-Item -ItemType Directory -Force -Path $path
+            }
+            
+           #>
+             # FOR SCRIPT USE THIS 
+            [switch]$pathExists = Test-Path -Path $PSScriptRoot\exportedData
+            $path = $PSScriptRoot+"\exportedData"
+
+            #write-host $path
+            # elegxei an o fakelos chartsImages yparxei!
+            # an den yparxei ton dhmiourgei kai vazei ekei mesa tis eikones
+            if (!$pathExists){
+                New-Item -ItemType Directory -Force -Path $PSScriptRoot\exportedData 
+            }
+           
+            [string]$fileName = (get-date).ToString("dd-MMM-yyyy-HH-mm-ss_")      
+
+            $fileName += ($SQLQueryTextBox.Text.Replace(" ","_")).Replace("*","All")
+            
+            #write-host "$path\$fileName.csv"
+
+
+            get-tablecontents -query $SQLQueryTextBox.Text | ConvertTo-Html | Out-File -FilePath ("$path\$fileName.htm")
+        
+        })
 
         
 
@@ -970,8 +1098,22 @@ Events Found:"
                 }
             }
             
-
+            <#
+             # For EXE USE THIS 
+            [switch]$pathExists = Test-Path -Path ((Get-Location).Path+"\exportedData")
+            #FOR EXE USE THIS 
+            $path = (Get-Location).Path+"\exportedData"
+            # elegxei an o fakelos exportedData yparxei!
+            # an den yparxei ton dhmiourgei kai vazei ekei mesa tis ta csv kai ta html
+            if (!$pathExists){
+                New-Item -ItemType Directory -Force -Path $path
+            }
+            
+           #>
+            # For Script USE THIS 
             [switch]$pathExists = Test-Path -Path $PSScriptRoot\chartsImages
+
+            $path = $PSScriptRoot+"\chartsImages"
             # elegxei an o fakelos chartsImages yparxei!
             # an den yparxei ton dhmiourgei kai vazei ekei mesa tis eikones
             if (!$pathExists){
@@ -981,7 +1123,7 @@ Events Found:"
             $Chart.Width = 2000
             $Chart.Height = 1000
             # $PSScriptRoot: This is an automatic variable set to the current file's/module's directory
-            $Chart.SaveImage("$PSScriptRoot\chartsImages\$fileName.png","png")
+            $Chart.SaveImage("$path\$fileName.png","png")
             $Chart.Width = 850
             $Chart.Height = 450
         })
@@ -1313,4 +1455,3 @@ Visualization"
 
 
 Get-LogVisualization -AfterDate (Get-PreparedForVisualization) -Type $Global:Type
-
