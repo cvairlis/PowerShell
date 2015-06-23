@@ -2118,10 +2118,10 @@ function Get-TimeRangesForNames
                     3{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_03-04";break}
                     4{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_04-05";break}
                     5{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_05-06";break}
-                    6{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_06-08";break}
-                    7{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_07-09";break}
-                    8{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_08-10";break}
-                    9{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_09-11";break}
+                    6{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_06-07";break}
+                    7{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_07-08";break}
+                    8{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_08-09";break}
+                    9{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_09-10";break}
                     10{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_10-11";break}
                     11{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_11-12";break}
                     12{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_12-13";break}
