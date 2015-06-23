@@ -6,11 +6,14 @@ $LogConnectionString =
 #Import-Module LogDatabase
 # remove and then import to be sure we have the latest changes in memory
 
-Remove-Module LogAnalysis
+
 Import-Module LogAnalysis
 
 
-[void][Reflection.Assembly]::LoadWithPartialName("LogAnalysis.LogDatabase.TableContent")
+# load the appropriate assemblies
+[void][Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
+[void][Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms.DataVisualization")
+Add-Type -AssemblyName System.Windows.Forms
 
 <#
 .Synopsis
@@ -206,10 +209,7 @@ using explicit credentials..."
     }
     Process
     {
-        # load the appropriate assemblies
-        [void][Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
-        [void][Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms.DataVisualization")
-        Add-Type -AssemblyName System.Windows.Forms
+        
         $Form = New-Object system.Windows.Forms.Form
 
 
@@ -708,8 +708,8 @@ Events Found:"
             if (!$pathExists){
                 New-Item -ItemType Directory -Force -Path $path
             }
-            
-           #>
+          #>  
+           
              # FOR SCRIPT USE THIS 
             [switch]$pathExists = Test-Path -Path $PSScriptRoot\exportedData
             $path = $PSScriptRoot+"\exportedData"
@@ -720,15 +720,23 @@ Events Found:"
             if (!$pathExists){
                 New-Item -ItemType Directory -Force -Path $PSScriptRoot\exportedData 
             }
+            
            
             [string]$fileName = (get-date).ToString("dd-MMM-yyyy-HH-mm-ss_")      
 
-            $fileName += ($SQLQueryTextBox.Text.Replace(" ","_")).Replace("*","All")
+            $fileName += (((((($SQLQueryTextBox.Text.Replace(" ","_")).Replace("*","All")).
+                                                   Replace(">","GT")).Replace("<","LT")).
+                                                   Replace(":","-")).Replace("/","-")).Replace("\","-")
+
+            if (($fileName.Length+$path.Length) -gt 255){
+                $fileName = (get-date).ToString("dd-MMM-yyyy-HH-mm-ss_")
+                write-host $fileName  $path
+                $fileName += "bigQuery"                
+            }
             #
-           #write-host "$path\$fileName.csv"
-
-
+            
             get-tablecontents -query $SQLQueryTextBox.Text | export-csv -Path ("$path\$fileName.csv")
+            write-host "File Saved as: ""$path\$fileName.csv"
         
         })
 
@@ -771,12 +779,18 @@ Events Found:"
            
             [string]$fileName = (get-date).ToString("dd-MMM-yyyy-HH-mm-ss_")      
 
-            $fileName += ($SQLQueryTextBox.Text.Replace(" ","_")).Replace("*","All")
-            
+            $fileName += (((((($SQLQueryTextBox.Text.Replace(" ","_")).Replace("*","All")).
+                                                   Replace(">","GT")).Replace("<","LT")).
+                                                   Replace(":","-")).Replace("/","-")).Replace("\","-")
             #write-host "$path\$fileName.csv"
 
-
+            if (($fileName.Length+$path.Length) -gt 255){
+                $fileName = (get-date).ToString("dd-MMM-yyyy-HH-mm-ss_")
+                write-host $fileName  $path
+                $fileName += "bigQuery"                
+            }
             get-tablecontents -query $SQLQueryTextBox.Text | ConvertTo-Html | Out-File -FilePath ("$path\$fileName.htm")
+            write-host "File Saved as: ""$path\$fileName.htm"
         
         })
 
@@ -1098,18 +1112,18 @@ Events Found:"
                 }
             }
             
-            <#
+            
              # For EXE USE THIS 
-            [switch]$pathExists = Test-Path -Path ((Get-Location).Path+"\exportedData")
+            [switch]$pathExists = Test-Path -Path ((Get-Location).Path+"\chartsImages")
             #FOR EXE USE THIS 
-            $path = (Get-Location).Path+"\exportedData"
+            $path = (Get-Location).Path+"\chartsImages"
             # elegxei an o fakelos exportedData yparxei!
             # an den yparxei ton dhmiourgei kai vazei ekei mesa tis ta csv kai ta html
             if (!$pathExists){
                 New-Item -ItemType Directory -Force -Path $path
             }
             
-           #>
+           <#
             # For Script USE THIS 
             [switch]$pathExists = Test-Path -Path $PSScriptRoot\chartsImages
 
@@ -1119,6 +1133,7 @@ Events Found:"
             if (!$pathExists){
                 New-Item -ItemType Directory -Force -Path $PSScriptRoot\chartsImages 
             }
+            #>
             
             $Chart.Width = 2000
             $Chart.Height = 1000
@@ -1232,8 +1247,8 @@ function Get-PreparedForVisualization
         # Label for the available machines combobox
         $ProceedLabel = New-Object system.windows.forms.label
         $ProceedLabel.Text = "Proceed by choosing a time range."
-        $ProceedLabel.Size = '400,80'
-        $ProceedLabel.Location = '22,100'
+        $ProceedLabel.Size = '400,40'
+        $ProceedLabel.Location = '40,130'
         $ProceedLabel.Font = New-object System.Drawing.Font('Calibri', 12, [System.Drawing.FontStyle]::Bold, [System.Drawing.GraphicsUnit]::Point,0)
         
         $PreparingDataForm.Controls.Add($ProceedLabel)
