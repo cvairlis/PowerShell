@@ -5,706 +5,93 @@ $LogConnectionString =
 
 Import-Module LogDatabase
 
+
+<#
+  # ______________________________________________________________________________________________________ 
+  # ======================================================================================================
+
+  LogAnalysis Module contains 18 cmdlets. All these "LogAnalysis" cmdlets are divided in two 2 major groups.
+  
+
+   ## First Group ##
+    # cmdlets that are used only within this module
+      Get-DatabaseAvailableTableNames
+      Set-LogEventInDatabase
+      Set-TableAutoIncrementValue
+      Clear-TableContentsFromDatabase
+      Get-CaptionFromSId
+      Get-LogonType
+      Get-ImpersonationLevelExplanation
+      Get-StatusExplanation
+      Get-DatesUntilNow
+      Get-TimeRangesForNames
+      Get-TimeRangesForValues
+
+
+   ## Second Group ##
+    # cmdlets that are used only from the script: "LogVisualization.ps1"      
+      Get-TableRowNumber
+      Get-LastEventDateFromDatabase
+      Get-EventsOccured
+      Get-HashTableForPieChart
+      Get-HashTableForTimeLineChart
+      Get-LogonIpAddresses
+      Get-TableContents
+
+
+   ## Third Group ##
+    # cmdlets that are used only from the script: "ScheduleLogs.ps1"
+      Get-LastStoredEvent
+
+
+   ## Fourth Group ##
+    # cmdlets that are never used    
+      Get-TableColumnNumber   
+
+   # ======================================================================================================
+   # ______________________________________________________________________________________________________
+
+#>
+
+
+# ==================================================================
+## First Group ## START
+# cmdlets that are used only within this module
+
 <#
 .NAME
-   Set-LogNamesInDatabase
+   
 
 .SYNOPSIS
-   Initiates Log Names in LogDatabase.
+   
 
 .SYNTAX
-   Set-LogNamesInDatabase [[-InputLogName] <String[]>]
+
    
 .DESCRIPTION
-   LogDatabase (LogDB) contains a table called LOG_TYPE. 
-   In order to initialize and then use the database it is good to have this table in use.
-   It helps us find which eventlogs are in use, how many entries are currently stored
-   for every subtable and other special information.
-
+   
+   
 .PARAMETERS
-   -InputLogName <String[]>
-      Specifies the names of one or more Log Names to be stored in Database.
-      
-      Required?                    true
-      Position?                    1
-      Default value
-      Accept pipeline input?       false
-      Accept wildcard characters?  false
-   
+
+.INPUTS
+
+.OUTPUTS
+
+.NOTES
+
 .EXAMPLE
-   Set-LogNamesInDatabase -InputLogName Application, Security, System
 
-   This is going to set these three string values in Database.
+   -------------------------- EXAMPLE 1 --------------------------
 
-#>
-function Set-LogNamesInDatabase
-{
-    [CmdletBinding()]
-    [OutputType([int])]
-    Param
-    (
-        #Param1 help description
-        [Parameter(Mandatory=$true,
-                   ValueFromPipelineByPropertyName=$true)]
-        [String[]]$InputLogName
-    )
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
 
-    PROCESS {
-        [long]$counter = 0
-        foreach ($logname in $InputLogName) {
-            
-            $query = "INSERT INTO LOG_TYPE
-                      (Id, LogName, Description)
-                      VALUES
-                      ('$counter', '$logname', '$logname Log Entries')"
-
-            Write-Verbose "Query will be $query"
-            Invoke-LogDatabaseQuery -connection $LogConnectionString `
-                                    -isSQLServer `
-                                    -query $query
-
-            $counter++
-        }
-    }
-}
-
-
-
-<#
-.Synopsis
-   Short description
-.DESCRIPTION
-   
-   This cmdlet Clear-TableContentsFromDatabase helps you interact with the LogDatabase
-   and erase the contents of a specific table. You can pass multible tables at once. See examples.
 .EXAMPLE
-   Clear-TableContentsFromDatabase -Table LOG_TYPE, EVENTS
-.EXAMPLE
-   Another example of how to use this cmdlet
-#>
-function Clear-TableContentsFromDatabase
-{
-    [CmdletBinding()]
-    [OutputType([int])]
-    Param
-    (
-        # Param1 help description
-        [Parameter(Mandatory=$true,
-                   ValueFromPipelineByPropertyName=$true,
-                   Position=0)]
-        [String[]]$Table,
 
-        [int]$AutoIncrementValue=0
+   -------------------------- EXAMPLE 2 --------------------------
 
-    )
-    Process
-    {
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
 
-        foreach ($ta in $Table) {
 
-            $query = "DELETE FROM $ta"
-
-            Write-Verbose "Query will be '$query'"
-            Write-Verbose "Deleted Records FOR '$ta' Table:"
-            Invoke-LogDatabaseQuery -connection $LogConnectionString `
-                                    -isSQLServer `
-                                    -query $query
-
-            Set-TableAutoIncrementValue -Table: $ta -Value $AutoIncrementValue
-
-            Write-Verbose "AutoIncrementValue for Table $ta will be $AutoIncrementValue."
-            $AutoIncrementValue++
-            Write-Verbose "The first next new record for Table: $ta will have Id value = $AutoIncrementValue"
-        
-        }
-    }
-}
-
-
-
-<#
-.Synopsis
-   Short description
-.DESCRIPTION
-   Long description
-.EXAMPLE
-   Example of how to use this cmdlet
-.EXAMPLE
-   Another example of how to use this cmdlet
-#>
-function Get-LastEventDateFromDatabase
-{
-    [CmdletBinding()]
-    #[OutputType([String])]
-    Param
-    (
-        # Param1 help description
-        [Parameter(Mandatory=$true,
-                   ValueFromPipelineByPropertyName=$true,
-                   Position=0)]
-        [string]$Table,
-        $After,
-        $LogName,
-        $SecurityType
-        # Param2 help description
-       
-        
-    )
-
-    Begin
-    {
-    }
-    Process
-    {
-        [string]$eve = (Get-LogDatabaseData -connectionString $LogConnectionString `
-                                               -isSQLServer `
-                                               -query "SELECT TOP 1 TimeCreated from $Table").TimeCreated
-       # Write-Output 
-       $eve                                         
-
-    }
-    End
-    {
-    }
-}
-
-<#
-.Synopsis
-   Short description
-.DESCRIPTION
-   Long description
-.EXAMPLE
-   Example of how to use this cmdlet
-.EXAMPLE
-   Another example of how to use this cmdlet
-#>
-function Get-TableContentsFromDatabase
-{
-    [CmdletBinding()]
-    #[OutputType([LogAnalysis.LogDatabase.TableContent[]])]
-    Param
-    (
-        # Param1 help description
-        [Parameter(Mandatory=$true,
-                   ValueFromPipelineByPropertyName=$true,
-                   Position=0)]
-        [String[]]$Table,
-        # Param2 help description
-        [int]$Newest,
-        [String]$LogName,
-        $SecurityType
-
-    )
-    Process
-    {
-        foreach ($ta in $Table){
-            
-            if ($LogName -eq "") {
-            
-                if ($Newest -eq 0){
-                    <#
-                    $eve = Get-LogDatabaseData -connectionString $LogConnectionString `
-                                               -isSQLServer `
-                                               -query "SELECT * from $ta
-                                                       ORDER BY Id DESC"
-                                                       #>
-                    $eve = Get-LogDatabaseData -connectionString $LogConnectionString `
-                                               -isSQLServer `
-                                               -query "SELECT Id, EventId, LogName, TimeCreated from $ta
-                                                       ORDER BY Id DESC"
-
-                    foreach ($ev in $eve){                
-                        # Creating the custom output
-                        switch ($ta) {
-                            "events"{                        
-                            
-                            $propos = @{'dBIndex'=$ev.Id;
-                                              'EventId'=$ev.EventId; 
-                                              'LogName'=$ev.LogName;
-                                              'TimeCreated'=[System.DateTime]$ev.TimeCreated;
-                                               } ;break
-                            }                 
-                        }     
-                        $obj = New-Object -TypeName psobject -Property $propos
-                        $obj.PSObject.TypeNames.Insert(0,'LogAnalysis.LogDatabase.TableContent')
-                        Write-Output $obj
-                    }
-                } else {
-                    $eve = Get-LogDatabaseData -connectionString $LogConnectionString `
-                                        -isSQLServer `
-                                        -query "SELECT TOP $Newest * from $ta                    
-                                                ORDER BY Id DESC"
-
-                    # Database returns events (number>0)
-                    # with the following foreach loop we make a custom object for each event that came from database
-                
-                    foreach ($ev in $eve){
-                        # Creating the custom output
-                        switch ($ta) {
-                            "events"{
-                            #[System.DateTime]$dt2 = $ev.TimeCreated
-
-                            $propos = @{'dBIndex'=$ev.Id;
-                                   'EventId'=$ev.EventId;
-                                   'EventVersion'=$ev.EventVersion;
-                                   'EventLevel'=$ev.EventLevel;
-                                   'Task'=$ev.Task;
-                                   'OpCode'=$ev.OpCode;
-                                   'Keywords'=$ev.Keywords;
-                                   'EventRecordId'=$ev.EventRecordId;
-                                   'ProviderName'=$ev.ProviderName;
-                                   'ProviderId'=$ev.ProviderId;
-                                   'LogName'=$ev.LogName;
-                                   'ProcessId'=$ev.ProcessId;
-                                   'ThreadId'=$ev.ThreadId;
-                                   'MachineName'=$ev.MachineName;
-                                   'TimeCreated'=[System.DateTime]$ev.TimeCreated;
-                                   'LevelDisplayName'=$ev.LevelDisplayName;
-                                   'OpcodeDisplayName'=$ev.OpcodeDisplayName;
-                                   'TaskDisplayName'=$ev.TaskDisplayName;
-                                   'KeywordsDisplayNames'=$ev.KeywordsDisplayNames;
-                                   'Message'=$ev.Message; } ;break
-                            }
-                        }
-
-
-                        $obj = New-Object -TypeName psobject -Property $propos
-                        $obj.PSObject.TypeNames.Insert(0,'LogAnalysis.LogDatabase.TableContent')
-                        Write-Output $obj
-
-                
-                    }
-                }                         
-            } elseif ($LogName -eq "Application") { 
-                if ($Newest -eq 0){
-                    $eve = Get-LogDatabaseData -connectionString $LogConnectionString `
-                                               -isSQLServer `
-                                               -query "SELECT Id, EventId, LogName, TimeCreated from $ta
-                                                       WHERE LogName='Application'
-                                                       ORDER BY Id DESC"
-                    foreach ($ev in $eve){
-                        # Creating the custom output
-                        switch ($ta) {
-                            "events"{
-                        
-                            #[System.DateTime]$dt3 = $ev.TimeCreated
-    
-                            $propos = @{'dBIndex'=$ev.Id;
-                                              'EventId'=$ev.EventId;
-                                              'LogName'=$ev.LogName;
-                                              'TimeCreated'=[System.DateTime]$ev.TimeCreated;
-                                              } ;break
-                            } 
-                
-                        }  
-                        
-                        $obj = New-Object -TypeName psobject -Property $propos
-                        $obj.PSObject.TypeNames.Insert(0,'LogAnalysis.LogDatabase.TableContent')
-                        Write-Output $obj                                 
-                    }
-
-                } else {
-                    $eve = Get-LogDatabaseData -connectionString $LogConnectionString `
-                                        -isSQLServer `
-                                        -query "SELECT TOP $Newest * from $ta
-                                                WHERE LogName='Application'
-                                                ORDER BY Id DESC"
-
-                    # Database returns events (number>0)
-                    # with the following foreach loop we make a custom object for each event that came from database
-                
-                    foreach ($ev in $eve){
-
-                
-                        # Creating the custom output
-                        switch ($ta) {
-                            "events"{
-                        
-                            #[System.DateTime]$dt4 = $ev.TimeCreated
-
-                            $propos = @{'dBIndex'=$ev.Id;
-                                   'EventId'=$ev.EventId;
-                                   'EventVersion'=$ev.EventVersion;
-                                   'EventLevel'=$ev.EventLevel;
-                                   'Task'=$ev.Task;
-                                   'OpCode'=$ev.OpCode;
-                                   'Keywords'=$ev.Keywords;
-                                   'EventRecordId'=$ev.EventRecordId;
-                                   'ProviderName'=$ev.ProviderName;
-                                   'ProviderId'=$ev.ProviderId;
-                                   'LogName'=$ev.LogName;
-                                   'ProcessId'=$ev.ProcessId;
-                                   'ThreadId'=$ev.ThreadId;
-                                   'MachineName'=$ev.MachineName;
-                                   'TimeCreated'=[System.DateTime]$ev.TimeCreated;
-                                   'LevelDisplayName'=$ev.LevelDisplayName;
-                                   'OpcodeDisplayName'=$ev.OpcodeDisplayName;
-                                   'TaskDisplayName'=$ev.TaskDisplayName;
-                                   'KeywordsDisplayNames'=$ev.KeywordsDisplayNames;
-                                   'Message'=$ev.Message; } ;break
-                            }
-                
-                        }                                            
-                        
-                        $obj = New-Object -TypeName psobject -Property $propos
-                        $obj.PSObject.TypeNames.Insert(0,'LogAnalysis.LogDatabase.TableContent')
-                        Write-Output $obj
-                    }
-                }
-                        
-                
-
-            } elseif ($LogName -eq "Security") {                
-                if ($Newest -eq 0){
-
-                    if ($SecurityType -eq "Failure"){
-                        $eve = get-logdatabasedata -connectionstring $logconnectionstring `
-                                                   -issqlserver `
-                                                   -query "select Id, EventId, LogName, TimeCreated from $ta                                                       
-                                                           where logname='security' and eventid = 4625
-                                                           order by id desc"
-                        foreach ($ev in $eve){
-                            # Creating the custom output
-                            switch ($ta) {
-                                "events"{
-                                
-                                #[System.DateTime]$dt5 = $ev.TimeCreated
-        
-                                $propos = @{'dBIndex'=$ev.Id;
-                                                'EventId'=$ev.EventId;
-                                                'LogName'=$ev.LogName;
-                                                'TimeCreated'=[System.DateTime]$ev.TimeCreated;
-                                               } ;break
-                                } 
-                
-                            }  
-                        
-                            $obj = New-Object -TypeName psobject -Property $propos
-                            $obj.PSObject.TypeNames.Insert(0,'LogAnalysis.LogDatabase.TableContent')
-                            Write-Output $obj                           
-                        }
-
-
-
-
-                    } elseif ($SecurityType -eq "Success"){
-
-                        $eve = Get-LogDatabaseData -connectionString $LogConnectionString `
-                                                   -isSQLServer `
-                                                   -query "SELECT Id, EventId, LogName, TimeCreated from $ta                                                       
-                                                           WHERE LogName='Security' AND EventId = 4624
-                                                           ORDER BY Id DESC"
-                        foreach ($ev in $eve){
-                            # Creating the custom output
-                            switch ($ta) {
-                                "events"{
-                                
-                                #[System.DateTime]$dt5 = $ev.TimeCreated
-        
-                                $propos = @{'dBIndex'=$ev.Id;
-                                                'EventId'=$ev.EventId;
-                                                'LogName'=$ev.LogName;
-                                                'TimeCreated'=[System.DateTime]$ev.TimeCreated;
-                                                } ;break
-                                } 
-                
-                            }  
-                        
-                            $obj = New-Object -TypeName psobject -Property $propos
-                            $obj.PSObject.TypeNames.Insert(0,'LogAnalysis.LogDatabase.TableContent')
-                            Write-Output $obj                           
-                        }
-
-
-
-                    } elseif ($SecurityType -eq ""){
-                        $eve = Get-LogDatabaseData -connectionString $LogConnectionString `
-                                                   -isSQLServer `
-                                                   -query "SELECT * from $ta                                                       
-                                                           WHERE LogName='Security'
-                                                           ORDER BY Id DESC"
-                        foreach ($ev in $eve){
-                            # Creating the custom output
-                            switch ($ta) {
-                                "events"{
-                                
-                                #[System.DateTime]$dt5 = $ev.TimeCreated
-        
-                                $propos = @{'dBIndex'=$ev.Id;
-                                                'EventId'=$ev.EventId;
-                                                'EventVersion'=$ev.EventVersion;
-                                                'EventLevel'=$ev.EventLevel;
-                                                'Task'=$ev.Task;
-                                                'OpCode'=$ev.OpCode;
-                                                'Keywords'=$ev.Keywords;
-                                                'EventRecordId'=$ev.EventRecordId;
-                                                'ProviderName'=$ev.ProviderName;
-                                                'ProviderId'=$ev.ProviderId;
-                                                'LogName'=$ev.LogName;
-                                                'ProcessId'=$ev.ProcessId;
-                                                'ThreadId'=$ev.ThreadId;
-                                                'MachineName'=$ev.MachineName;
-                                                'TimeCreated'=[System.DateTime]$ev.TimeCreated;
-                                                'LevelDisplayName'=$ev.LevelDisplayName;
-                                                'OpcodeDisplayName'=$ev.OpcodeDisplayName;
-                                                'TaskDisplayName'=$ev.TaskDisplayName;
-                                                'KeywordsDisplayNames'=$ev.KeywordsDisplayNames;
-                                                'Message'=$ev.Message; } ;break
-                                } 
-                
-                            }  
-                        
-                            $obj = New-Object -TypeName psobject -Property $propos
-                            $obj.PSObject.TypeNames.Insert(0,'LogAnalysis.LogDatabase.TableContent')
-                            Write-Output $obj                                 
-                        }
-
-                    }
-                    
-
-                } else {
-                    $eve = Get-LogDatabaseData -connectionString $LogConnectionString `
-                                        -isSQLServer `
-                                        -query "SELECT TOP $Newest * from $ta
-                                                WHERE LogName='Security'
-                                                ORDER BY Id DESC"
-
-                    # Database returns events (number>0)
-                    # with the following foreach loop we make a custom object for each event that came from database
-                
-                    foreach ($ev in $eve){
-
-                
-                        # Creating the custom output
-                        switch ($ta) {
-                            "events"{
-                        
-                            #[System.DateTime]$dt6 = $ev.TimeCreated
-
-                            $propos = @{'dBIndex'=$ev.Id;
-                                   'EventId'=$ev.EventId;
-                                   'EventVersion'=$ev.EventVersion;
-                                   'EventLevel'=$ev.EventLevel;
-                                   'Task'=$ev.Task;
-                                   'OpCode'=$ev.OpCode;
-                                   'Keywords'=$ev.Keywords;
-                                   'EventRecordId'=$ev.EventRecordId;
-                                   'ProviderName'=$ev.ProviderName;
-                                   'ProviderId'=$ev.ProviderId;
-                                   'LogName'=$ev.LogName;
-                                   'ProcessId'=$ev.ProcessId;
-                                   'ThreadId'=$ev.ThreadId;
-                                   'MachineName'=$ev.MachineName;
-                                   'TimeCreated'=[System.DateTime]$ev.TimeCreated;
-                                   'LevelDisplayName'=$ev.LevelDisplayName;
-                                   'OpcodeDisplayName'=$ev.OpcodeDisplayName;
-                                   'TaskDisplayName'=$ev.TaskDisplayName;
-                                   'KeywordsDisplayNames'=$ev.KeywordsDisplayNames;
-                                   'Message'=$ev.Message; } ;break
-                            }
-                
-                        }                                            
-                        
-                        $obj = New-Object -TypeName psobject -Property $propos
-                        $obj.PSObject.TypeNames.Insert(0,'LogAnalysis.LogDatabase.TableContent')
-                        Write-Output $obj
-                    }
-                }
-
-
-
-
-            } elseif ($LogName -eq "System") {
-                
-                 if ($Newest -eq 0){
-                    $eve = Get-LogDatabaseData -connectionString $LogConnectionString `
-                                               -isSQLServer `
-                                               -query "SELECT Id, EventId, LogName, TimeCreated from $ta                                                       
-                                                       WHERE LogName='System'
-                                                       ORDER BY Id DESC"
-                    foreach ($ev in $eve){
-                        # Creating the custom output
-                        switch ($ta) {
-                            "events"{
-                        
-                            #[System.DateTime]$dt7 = $ev.TimeCreated
-    
-                            $propos = @{'dBIndex'=$ev.Id;
-                                              'EventId'=$ev.EventId;
-                                              'LogName'=$ev.LogName;
-                                              'TimeCreated'=[System.DateTime]$ev.TimeCreated;
-                                              } ;break
-                            } 
-                
-                        }  
-                        
-                        $obj = New-Object -TypeName psobject -Property $propos
-                        $obj.PSObject.TypeNames.Insert(0,'LogAnalysis.LogDatabase.TableContent')
-                        Write-Output $obj                                 
-                    }
-
-                } else {
-                    $eve = Get-LogDatabaseData -connectionString $LogConnectionString `
-                                        -isSQLServer `
-                                        -query "SELECT TOP $Newest * from $ta                                                                    
-                                                WHERE LogName='System'
-                                                ORDER BY Id DESC"
-
-                    # Database returns events (number>0)
-                    # with the following foreach loop we make a custom object for each event that came from database
-                
-                    foreach ($ev in $eve){
-
-                
-                        # Creating the custom output
-                        switch ($ta) {
-                            "events"{
-                        
-                            #[System.DateTime]$dt8 = $ev.TimeCreated
-
-                            $propos = @{'dBIndex'=$ev.Id;
-                                   'EventId'=$ev.EventId;
-                                   'EventVersion'=$ev.EventVersion;
-                                   'EventLevel'=$ev.EventLevel;
-                                   'Task'=$ev.Task;
-                                   'OpCode'=$ev.OpCode;
-                                   'Keywords'=$ev.Keywords;
-                                   'EventRecordId'=$ev.EventRecordId;
-                                   'ProviderName'=$ev.ProviderName;
-                                   'ProviderId'=$ev.ProviderId;
-                                   'LogName'=$ev.LogName;
-                                   'ProcessId'=$ev.ProcessId;
-                                   'ThreadId'=$ev.ThreadId;
-                                   'MachineName'=$ev.MachineName;
-                                   'TimeCreated'=[System.DateTime]$ev.TimeCreated;
-                                   'LevelDisplayName'=$ev.LevelDisplayName;
-                                   'OpcodeDisplayName'=$ev.OpcodeDisplayName;
-                                   'TaskDisplayName'=$ev.TaskDisplayName;
-                                   'KeywordsDisplayNames'=$ev.KeywordsDisplayNames;
-                                   'Message'=$ev.Message; } ;break
-                            }
-                
-                        }                                            
-                        
-                        $obj = New-Object -TypeName psobject -Property $propos
-                        $obj.PSObject.TypeNames.Insert(0,'LogAnalysis.LogDatabase.TableContent')
-                        Write-Output $obj
-                    }
-                }
-            }
-        }
-    }
-}
-
-
-<#
-.Synopsis
-   Short description
-.DESCRIPTION
-   Long description
-.EXAMPLE
-   Example of how to use this cmdlet
-.EXAMPLE
-   Another example of how to use this cmdlet
-#>
-function Get-TableRowNumber
-{
-    [CmdletBinding()]
-    [OutputType([int])]
-    Param
-    (
-        # Param1 help description
-        [Parameter(Mandatory=$true,
-                   ValueFromPipelineByPropertyName=$true,
-                   Position=0)]
-        [String[]]$Table,
-        [String]$After,
-        [string]$LogName
-    )
-    Process
-    {
-        foreach ($ta in $Table){
-
-            #$After = $After.Substring(
-
-            if ($After -eq 0){
-                  
-                [int]$number = (Get-LogDatabaseData -connectionString $LogConnectionString `
-                                 -isSQLServer `
-                                 -query "SELECT COUNT(*) from $ta").item(0)
-
-                Write-Output $number
-
-                if ($LogName -ne ""){
-
-
-
-                }
-
-            } else {
-
-                [int]$number = (Get-LogDatabaseData -connectionString $LogConnectionString `
-                                 -isSQLServer `
-                                 -query "SELECT COUNT(*) AS Count from $ta
-                                         WHERE TimeCreated >= '$After'").Count
-
-                Write-Output $number
-
-
-            }
-
-        
-        }
-    }
-}
-
-
-<#
-.Synopsis
-   Short description
-.DESCRIPTION
-   Long description
-.EXAMPLE
-   Example of how to use this cmdlet
-.EXAMPLE
-   Another example of how to use this cmdlet
-#>
-function Get-TableColumnNumber
-{
-    [CmdletBinding()]
-    [OutputType([int])]
-    Param
-    (
-        # Param1 help description
-        [Parameter(Mandatory=$true,
-                   ValueFromPipelineByPropertyName=$true,
-                   Position=0)]
-        [String[]]$Table
-    )
-    Process
-    {
-         foreach ($ta in $Table){
-        
-             Get-LogDatabaseData -connectionString $LogConnectionString `
-                                 -isSQLServer `
-                                 -query "select count(*)
-                                         from LogDB.sys.columns
-                                         where object_id=OBJECT_ID('$ta')"
-        
-        }
-    }
-}
-
-
-<#
-.Synopsis
-   Short description
-.DESCRIPTION
-   Long description
-.EXAMPLE
-   Get-DatabaseAvailableTableNames | select table_name
-.EXAMPLE
-   Another example of how to use this cmdlet
 #>
 function Get-DatabaseAvailableTableNames
 {
@@ -726,44 +113,53 @@ function Get-DatabaseAvailableTableNames
     }
 }
 
-<#
-.Synopsis
-   Short description
-.DESCRIPTION
-   Long description
-.EXAMPLE
-   Example of how to use this cmdlet
-.EXAMPLE
-   Another example of how to use this cmdlet
-#>
-function Get-LogTypesFromDatabase
-{
-    [CmdletBinding()]
-    [OutputType([int])]
-    Param
-    (
-    )
-    Process
-    {
-        Get-LogDatabaseData -connectionString $LogConnectionString `
-                            -isSQLServer `
-                            -query "Select * from LOG_TYPE"
-    }
-}
-
-
-
-
 
 <#
-.Synopsis
-   Short description
+.NAME
+   Set-LogEventInDatabase
+
+.SYNOPSIS
+   Sets the events in database.
+
+.SYNTAX
+   Set-LogEventInDatabase [[-EventLogRecordObject <System.Diagnostics.Eventing.Reader.EventLogRecord[]>]]
+
 .DESCRIPTION
-   Long description
+   "Set-LogEventInDatabase" is basically the first cmdlet it's been written for the LogAnalysis Module. 
+   It accepts objects of type: System.Diagnostics.Eventing.Reader.EventLogRecord and it works for storing information of events to the Database.
+   It uses the verb Set to be  to be perceived that it Sets something 
+
+.PARAMETERS
+
+.INPUTS
+
+.OUTPUTS
+
+.NOTES
+
+
 .EXAMPLE
-   Get-WinEvent -LogName Application, Security, System | Sort-Object -Property TimeCreated | Set-LogEventInDatabase
+
+   -------------------------- EXAMPLE 1 --------------------------
+
+   PS C:\> Get-WinEvent -LogName Application, Security, System | Sort-Object -Property TimeCreated | Set-LogEventInDatabase
+
+   This command uses the Get-WinEvent cmdlet to get all of the Application, Security and System events. It uses a pipeline operator (|) to send events to the Sort-Object cmdlet. 
+   Sort-Obejct command sort all these events by property TimeCreated and it uses pipeline again to send events to the Set-LogEventInDatabase command.
+   Set-LogEventInDatabase cmdlet accepts all these eventlogrecord objects and sends the objects, one at a time, to be parsed and stored in the Database.
+
+
 .EXAMPLE
-   
+
+   It sends these objects to the Sort-Object cmdlet so the object
+
+   -------------------------- EXAMPLE 2 --------------------------
+  
+
+   PS C:\> Get-WinEvent -LogName Application, Security, System | Sort-Object -Property TimeCreated | Where-Object -FilterScript {($_.Timecreated).Year -eq 2015} | Set-LogEventInDatabase
+
+   This command gets all the eventlogrecordobjects from the application, security and the system log. It send objects to the Sort-Object cmdlet to
+
 #>
 function Set-LogEventInDatabase
 {
@@ -774,7 +170,7 @@ function Set-LogEventInDatabase
         # Param1 help description
         [Parameter(Mandatory=$true,
                    ValueFromPipeline=$true)]
-        [System.Diagnostics.Eventing.Reader.EventLogRecord[]]$EventLogObject
+        [System.Diagnostics.Eventing.Reader.EventLogRecord[]]$EventLogRecordObject
         
     )
 
@@ -1534,19 +930,373 @@ function Set-LogEventInDatabase
 }
 
 
+<#
+.NAME
+   
+
+.SYNOPSIS
+   
+
+.SYNTAX
+
+   
+.DESCRIPTION
+   
+   
+.PARAMETERS
+
+.INPUTS
+
+.OUTPUTS
+
+.NOTES
+
+.EXAMPLE
+
+   -------------------------- EXAMPLE 1 --------------------------
+
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
+
+.EXAMPLE
+
+   -------------------------- EXAMPLE 2 --------------------------
+
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
 
 
+#>
+function Set-TableAutoIncrementValue
+{
+    [CmdletBinding()]
+    [OutputType([int])]
+    Param
+    (
+        # Param1 help description
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true,
+                   Position=0)]
+        [String[]]$Table,
+        [int]$Value=0
+
+      
+    )
+
+    Process
+    {
+        foreach ($ta in $Table){
+
+                $query = "DBCC CHECKIDENT ('$ta',reseed,$Value)"              
+                
+                Write-Verbose "Query from 'Set-TableAutoIncrementValue cmdlet' will be: '$query'"
+
+                Invoke-LogDatabaseQuery -connection $LogConnectionString `
+                                        -isSQLServer `
+                                        -query $query
+        }
+        
+    }
+}
 
 
 <#
-.Synopsis
-   Short description
+.NAME
+   Clear-TableContentsFromDatabase
+
+.SYNOPSIS
+   It removes all the contents from any table of the database.
+
+.SYNTAX
+   
 .DESCRIPTION
-   Long description
+   
+   This cmdlet Clear-TableContentsFromDatabase helps you interact with the LogDatabase
+   and erase the contents of a specific table. You can pass multible tables at once. See examples.
+
+.PARAMETERS
+
+.INPUTS
+
+.OUTPUTS
+
+.NOTES
+
 .EXAMPLE
-   Example of how to use this cmdlet
+
+   -------------------------- EXAMPLE 1 --------------------------
+
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
+
 .EXAMPLE
-   Another example of how to use this cmdlet
+
+   -------------------------- EXAMPLE 2 --------------------------
+
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
+
+
+#>
+function Clear-TableContentsFromDatabase
+{
+    [CmdletBinding()]
+    [OutputType([int])]
+    Param
+    (
+        # Param1 help description
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true,
+                   Position=0)]
+        [String[]]$Table,
+
+        [int]$AutoIncrementValue=0
+
+    )
+    Process
+    {
+
+        foreach ($ta in $Table) {
+
+            $query = "DELETE FROM $ta"
+
+            Write-Verbose "Query will be '$query'"
+            Write-Verbose "Deleted Records FOR '$ta' Table:"
+            Invoke-LogDatabaseQuery -connection $LogConnectionString `
+                                    -isSQLServer `
+                                    -query $query
+
+            Set-TableAutoIncrementValue -Table: $ta -Value $AutoIncrementValue
+
+            Write-Verbose "AutoIncrementValue for Table $ta will be $AutoIncrementValue."
+            $AutoIncrementValue++
+            Write-Verbose "The first next new record for Table: $ta will have Id value = $AutoIncrementValue"
+        
+        }
+    }
+}
+
+
+<#
+.NAME
+   
+
+.SYNOPSIS
+   
+
+.SYNTAX
+
+   
+.DESCRIPTION
+   
+   
+.PARAMETERS
+
+.INPUTS
+
+.OUTPUTS
+
+.NOTES
+
+.EXAMPLE
+
+   -------------------------- EXAMPLE 1 --------------------------
+
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
+
+.EXAMPLE
+
+   -------------------------- EXAMPLE 2 --------------------------
+
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
+
+
+#>
+function Get-CaptionFromSId
+{
+    [CmdletBinding()]
+    [OutputType([String])]
+    Param
+    (
+        # Param1 help description
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true,
+                   Position=0)]
+        [string]$Sid
+    )
+    Process
+    {
+        [System.Management.ManagementObject[]]$s = Get-WmiObject -Class Win32_Account
+        
+        foreach ($ob in $s){
+            if($ob.sid -eq $Sid){
+                Write-Output $ob.caption
+            }        
+        }
+        
+        if($Sid -eq "S-1-0-0"){
+            Write-Output "NULL-SID"
+        }
+    }
+}
+
+
+<#
+.NAME
+   
+
+.SYNOPSIS
+   
+
+.SYNTAX
+
+   
+.DESCRIPTION
+   
+   
+.PARAMETERS
+
+.INPUTS
+
+.OUTPUTS
+
+.NOTES
+
+.EXAMPLE
+
+   -------------------------- EXAMPLE 1 --------------------------
+
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
+
+.EXAMPLE
+
+   -------------------------- EXAMPLE 2 --------------------------
+
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
+
+
+#>
+function Get-LogonType
+{
+    [CmdletBinding()]
+    [OutputType([String])]
+    Param
+    (
+        # Param1 help description
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true,
+                   Position=0)]
+        [int]$LogonType
+    )
+    Process
+    {
+        switch ($LogonType){
+            2{"2: Interactive (logon at keyboard and screen of system)";break}
+            3{"3: Network (i.e. connection to shared folder on this computer from elsewhere on network)";break}
+            4{"4: Batch (i.e. scheduled task)";break}
+            5{"5: Service (Service startup)";break}
+            7{"7: Unlock (i.e. unnattended workstation with password protected screen saver)";break}
+            8{"8: NetworkCleartext (Logon with credentials sent in the clear text. Most often indicates a logon to IIS with basic authentication)";break}
+            9{"9: NewCredentials such as with RunAs or mapping a network drive with alternate credentials.  This logon type does not seem to show up in any events.";break}
+            10{"10: RemoteInteractive (Terminal Services, Remote Desktop or Remote Assistance)";break}
+            11{"11: CachedInteractive (logon with cached domain credentials such as when logging on to a laptop when away from the network)";break}
+            default {"Logon Type could not be determined."}
+        }
+    }
+}
+
+
+<#
+.NAME
+   
+
+.SYNOPSIS
+   
+
+.SYNTAX
+
+   
+.DESCRIPTION
+   
+   
+.PARAMETERS
+
+.INPUTS
+
+.OUTPUTS
+
+.NOTES
+
+.EXAMPLE
+
+   -------------------------- EXAMPLE 1 --------------------------
+
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
+
+.EXAMPLE
+
+   -------------------------- EXAMPLE 2 --------------------------
+
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
+
+
+#>
+function Get-ImpersonationLevelExplanation
+{
+    [CmdletBinding()]
+    [OutputType([String])]
+    Param
+    (
+        # Param1 help description
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true,
+                   Position=0)]
+        [String]$ImpersonationLevel
+    )
+    Process
+    {
+        switch ($ImpersonationLevel) {
+            "Anonymous"{"Anonymous COM impersonation level that hides the identity of the caller. Calls to WMI may fail with this impersonation level.";break}
+            "Default"{"Default impersonation.";break}
+            "Delegate"{"Delegate-level COM impersonation level that allows objects to permit other objects to use the credentials of the caller. This level, which will work with WMI calls but may constitute an unnecessary security risk, is supported only under Windows 2000."; break}
+            "Identify"{"Identify-level COM impersonation level that allows objects to query the credentials of the caller. Calls to WMI may fail with this impersonation level."; break}
+            "Impersonation"{"Impersonate-level COM impersonation level that allows objects to use the credentials of the caller. This is the recommended impersonation level for WMI calls."; break}
+             default {"Impersonation Level could not be determined."}
+        }
+    }
+}
+
+
+<#
+.NAME
+   
+
+.SYNOPSIS
+   
+
+.SYNTAX
+
+   
+.DESCRIPTION
+   
+   
+.PARAMETERS
+
+.INPUTS
+
+.OUTPUTS
+
+.NOTES
+
+.EXAMPLE
+
+   -------------------------- EXAMPLE 1 --------------------------
+
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
+
+.EXAMPLE
+
+   -------------------------- EXAMPLE 2 --------------------------
+
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
+
+
 #>
 function Get-StatusExplanation
 {
@@ -1588,93 +1338,474 @@ function Get-StatusExplanation
 
 
 <#
-.Synopsis
-   Short description
+.NAME
+   
+
+.SYNOPSIS
+   
+
+.SYNTAX
+
+   
 .DESCRIPTION
-   Long description
+   
+   
+.PARAMETERS
+
+.INPUTS
+
+.OUTPUTS
+
+.NOTES
+
 .EXAMPLE
-   Example of how to use this cmdlet
+
+   -------------------------- EXAMPLE 1 --------------------------
+
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
+
 .EXAMPLE
-   Another example of how to use this cmdlet
+
+   -------------------------- EXAMPLE 2 --------------------------
+
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
+
+
 #>
-function Get-LogonType
+function Get-DatesUntilNow
 {
     [CmdletBinding()]
-    [OutputType([String])]
+    #[OutputType([int])]
     Param
     (
         # Param1 help description
         [Parameter(Mandatory=$true,
                    ValueFromPipelineByPropertyName=$true,
                    Position=0)]
-        [int]$LogonType
+        [System.DateTime]$DateTime,
+        [switch]$Reverse
     )
-    Process
+
+    Begin
     {
-        switch ($LogonType){
-            2{"2: Interactive (logon at keyboard and screen of system)";break}
-            3{"3: Network (i.e. connection to shared folder on this computer from elsewhere on network)";break}
-            4{"4: Batch (i.e. scheduled task)";break}
-            5{"5: Service (Service startup)";break}
-            7{"7: Unlock (i.e. unnattended workstation with password protected screen saver)";break}
-            8{"8: NetworkCleartext (Logon with credentials sent in the clear text. Most often indicates a logon to IIS with basic authentication)";break}
-            9{"9: NewCredentials such as with RunAs or mapping a network drive with alternate credentials.  This logon type does not seem to show up in any events.";break}
-            10{"10: RemoteInteractive (Terminal Services, Remote Desktop or Remote Assistance)";break}
-            11{"11: CachedInteractive (logon with cached domain credentials such as when logging on to a laptop when away from the network)";break}
-            default {"Logon Type could not be determined."}
-        }
+        $DatesArray = New-Object System.Collections.ArrayList
+        $co = 0
+    }
+    Process
+    {   
+
+        $timeSpan = (New-TimeSpan -Start (Get-Date) -End $DateTime).Days*-1
+
+        for ($in =0; $in -le $timeSpan; $in++ ) {
+            $forDay = (Get-Date).AddDays(-$in)
+            $ArrayListAddition = $DatesArray.Add($forDay)
+            $co = $co-1
+        }    
+        
+        if ($Reverse){
+            $DatesArray.Reverse()
+        } 
+        
+    }
+    End
+    {        
+        return $DatesArray
     }
 }
 
 
 <#
-.Synopsis
-   Short description
+.NAME
+   
+
+.SYNOPSIS
+   
+
+.SYNTAX
+
+   
 .DESCRIPTION
-   Long description
+   
+   
+.PARAMETERS
+
+.INPUTS
+
+.OUTPUTS
+
+.NOTES
+
 .EXAMPLE
-   Example of how to use this cmdlet
+
+   -------------------------- EXAMPLE 1 --------------------------
+
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
+
 .EXAMPLE
-   Another example of how to use this cmdlet
+
+   -------------------------- EXAMPLE 2 --------------------------
+
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
+
+
 #>
-function Get-ImpersonationLevelExplanation
+function Get-TimeRangesForNames
 {
     [CmdletBinding()]
-    [OutputType([String])]
+    [OutputType([int])]
     Param
     (
         # Param1 help description
         [Parameter(Mandatory=$true,
                    ValueFromPipelineByPropertyName=$true,
                    Position=0)]
-        [String]$ImpersonationLevel
+        [string]$DateTime
     )
+
+     Begin
+    {
+        $namesArray = New-Object System.Collections.ArrayList
+        #metatrepw to string pou irhte se antikeimeno DateTime
+        $DateToWorkWith = [System.DateTime]$DateTime
+        # dhmiourgontas ena antikeimeno TimeSpan mporw na vrw poses meres apexei h hmeromhnia pou irthe apo th current date
+        $timeSpan = New-TimeSpan -Start $DateToWorkWith -End (get-date)
+    }
     Process
     {
-        switch ($ImpersonationLevel) {
-            "Anonymous"{"Anonymous COM impersonation level that hides the identity of the caller. Calls to WMI may fail with this impersonation level.";break}
-            "Default"{"Default impersonation.";break}
-            "Delegate"{"Delegate-level COM impersonation level that allows objects to permit other objects to use the credentials of the caller. This level, which will work with WMI calls but may constitute an unnecessary security risk, is supported only under Windows 2000."; break}
-            "Identify"{"Identify-level COM impersonation level that allows objects to query the credentials of the caller. Calls to WMI may fail with this impersonation level."; break}
-            "Impersonation"{"Impersonate-level COM impersonation level that allows objects to use the credentials of the caller. This is the recommended impersonation level for WMI calls."; break}
-             default {"Impersonation Level could not be determined."}
+        # an h hmeromhnia pou irthe apo th shmerinh apexei ligoteres h ises me 7 meres (arithmos 7)
+        # tote ftiakse fiasthmata ths mias wras
+        if ($timeSpan.Days -lt 7){
+            #gia kathe mia apo tis meres ftiakse diasthmata mias wras
+            # etoima gia na xrhsimopoihthoun ws erwthma sthn sql
+            for ($i = 0 ; ($i -le $timeSpan.Days); $i++){
+                for ($j = 0; $j -le 23; $j++){
+                    switch ($j){
+                    0{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_00-01";break}
+                    1{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_01-02";break}
+                    2{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_02-03";break}
+                    3{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_03-04";break}
+                    4{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_04-05";break}
+                    5{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_05-06";break}
+                    6{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_06-08";break}
+                    7{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_07-09";break}
+                    8{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_08-10";break}
+                    9{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_09-11";break}
+                    10{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_10-11";break}
+                    11{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_11-12";break}
+                    12{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_12-13";break}
+                    13{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_13-14";break}
+                    14{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_14-15";break}
+                    15{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_15-16";break}
+                    16{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_16-17";break}
+                    17{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_17-18";break}
+                    18{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_18-19";break}
+                    19{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_19-20";break}
+                    20{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_20-21";break}
+                    21{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_21-22";break}
+                    22{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_22-23";break}
+                    23{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_23-00";break}
+                    }
+                    $addition = $namesArray.Add($temp)
+                }
+            }
+            
+        # an h hmeromhnia pou irthe apexei apo th shmerinh perissores apo 7 meres (arithmos 7) kai ligoteres apo 30
+        # tote ftiakse fiasthmata ths mias meras
+        } elseif ($timeSpan.Days -gt 7 -and $timeSpan.Days -le 30){
+            # gia kathe mera apo th prwth mera pou irthe ftiaxnei ena str tou typou px 12_Jun mexri na ftasei th shmerinh hmeromhnia
+            for ($i=0; $DateToWorkWith.AddDays($i).date -le (Get-Date).date; $i++){
+                $temp = $DateToWorkWith.AddDays($i).ToString("dd_MMM")  
+                $addition = $namesArray.Add($temp)
+            }
+            
+        # an h hmeromhnia pou irthe apexei apo th shmerinh perissores apo 30
+        # tote ftiakse fiasthmata ths mias vdomadas
+        } elseif ($timeSpan.Days -gt 30){                    
+            if ($DateToWorkWith.DayOfWeek.value__ -ne 0){
+                switch ($DateToWorkWith.DayOfWeek.value__){
+                1 { 
+                    $temp = $DateToWorkWith.ToString("dd_MMM")+"-"+$DateToWorkWith.AddDays(5).ToString("dd_MMM")
+                    $next = $DateToWorkWith.AddDays(6)
+                ;break}
+                2 { 
+                    $temp = $DateToWorkWith.ToString("dd_MMM")+"-"+$DateToWorkWith.AddDays(4).ToString("dd_MMM")
+                    $next = $DateToWorkWith.AddDays(5)
+                ;break}
+                3 { 
+                    $temp = $DateToWorkWith.ToString("dd_MMM")+"-"+$DateToWorkWith.AddDays(3).ToString("dd_MMM")
+                    $next = $DateToWorkWith.AddDays(4)
+                ;break}
+                4 { 
+                    $temp = $DateToWorkWith.ToString("dd_MMM")+"-"+$DateToWorkWith.AddDays(2).ToString("dd_MMM")
+                    $next = $DateToWorkWith.AddDays(3)
+                ;break}
+                5 { 
+                    $temp = $DateToWorkWith.ToString("dd_MMM")+"-"+$DateToWorkWith.AddDays(1).ToString("dd_MMM")
+                    $next = $DateToWorkWith.AddDays(2)
+                ;break}
+                6 { 
+                    $temp = $DateToWorkWith.ToString("dd_MMM")+"-"+$DateToWorkWith.AddDays(5).ToString("dd_MMM")
+                    $next = $DateToWorkWith.AddDays(1)
+                ;break}
+
+                }
+                $addition = $namesArray.Add($temp)
+            } else {
+                $next = $DateToWorkWith
+            }
+            
+            [System.Collections.ArrayList]$dates = (Get-DatesUntilNow -DateTime $next)
+            $dates.reverse()
+            
+            foreach ($date in $dates){
+
+                if ($date.DayOfWeek.value__ -eq 0){
+                    $temp = $date.ToString("dd_MMM")+"-"+$date.AddDays(6).ToString("dd_MMM")
+                    $addition = $namesArray.Add($temp)
+                }                
+            }
         }
     }
+    End
+    {       
+        Write-Output $namesArray
+    }
+    
 }
 
 
 <#
-.Synopsis
-   Short description
+.NAME
+   
+
+.SYNOPSIS
+   
+
+.SYNTAX
+
+   
 .DESCRIPTION
-   Each table in database has an Id Column. Id value has an auto-increment feature for every new recond comes in.
-   This cmdlet enable us to reset this value for every table inside the database.
+   
+   
+.PARAMETERS
+
+.INPUTS
+
+.OUTPUTS
+
+.NOTES
+
 .EXAMPLE
-   Set-TableAutoIncrementValue -Table EVENTS, LOG_TYPE
+
+   -------------------------- EXAMPLE 1 --------------------------
+
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
+
 .EXAMPLE
-   Set-TableAutoIncrementValue -Table EVENTS -Value 8
+
+   -------------------------- EXAMPLE 2 --------------------------
+
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
+
+
+
+   PS C:\Windows\system32> Get-TimeRangesForValues -DateTime "02/05/2015 00:00:00"
+    '02/05/2015 00:00:00' AND '02/07/2015 23:59:59'
+    '02/08/2015 00:00:00' AND '02/14/2015 23:59:59'
+    '02/15/2015 00:00:00' AND '02/21/2015 23:59:59'
+    '02/22/2015 00:00:00' AND '02/28/2015 23:59:59'
+    '03/01/2015 00:00:00' AND '03/07/2015 23:59:59'
+    '03/08/2015 00:00:00' AND '03/14/2015 23:59:59'
+    '03/15/2015 00:00:00' AND '03/21/2015 23:59:59'
+    '03/22/2015 00:00:00' AND '03/28/2015 23:59:59'
+    '03/29/2015 00:00:00' AND '04/04/2015 23:59:59'
+    '04/05/2015 00:00:00' AND '04/11/2015 23:59:59'
+    '04/12/2015 00:00:00' AND '04/18/2015 23:59:59'
+    '04/19/2015 00:00:00' AND '04/25/2015 23:59:59'
+    '04/26/2015 00:00:00' AND '05/02/2015 23:59:59'
+    '05/03/2015 00:00:00' AND '05/09/2015 23:59:59'
+    '05/10/2015 00:00:00' AND '05/16/2015 23:59:59'
+    '05/17/2015 00:00:00' AND '05/23/2015 23:59:59'
+    '05/24/2015 00:00:00' AND '05/30/2015 23:59:59'
+    '05/31/2015 00:00:00' AND '06/06/2015 23:59:59'
+    '06/07/2015 00:00:00' AND '06/13/2015 23:59:59'
+    '06/14/2015 00:00:00' AND '06/20/2015 23:59:59'
 #>
-function Set-TableAutoIncrementValue
+function Get-TimeRangesForValues
+{
+    [CmdletBinding()]
+    [OutputType([int])]
+    Param
+    (
+        # Param1 help description
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true,
+                   Position=0)]
+        [string]$DateTime
+    )
+
+    Begin
+    {
+        $datesArray = New-Object System.Collections.ArrayList
+        #metatrepw to string pou irhte se antikeimeno DateTime
+        $DateToWorkWith = [System.DateTime]$DateTime
+
+        # dhmiourgontas ena antikeimeno TimeSpan mporw na vrw poses meres apexei h hmeromhnia pou irthe apo th current date
+        $timeSpan = New-TimeSpan -Start $DateToWorkWith -End (get-date)
+    }
+    Process
+    {
+        # an h hmeromhnia pou irthe apo th shmerinh apexei ligoteres h ises me 7 meres (arithmos 7)
+        # tote ftiakse fiasthmata ths mias wras
+        if ($timeSpan.Days -lt 7){
+
+            #gia kathe mia apo tis meres ftiakse diasthmata mias wras
+            # etoima gia na xrhsimopoihthoun ws erwthma sthn sql
+            for ($i = 0 ; ($i -le $timeSpan.Days); $i++){
+                for ($j = 0; $j -le 23; $j++){
+                    switch ($j){
+                    0{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 00:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 00:59:59")+"'";break}
+                    1{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 01:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 01:59:59")+"'";break}
+                    2{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 02:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 02:59:59")+"'";break}
+                    3{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 03:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 03:59:59")+"'";break}
+                    4{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 04:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 04:59:59")+"'";break}
+                    5{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 05:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 05:59:59")+"'";break}
+                    6{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 06:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 06:59:59")+"'";break}
+                    7{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 07:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 07:59:59")+"'";break}
+                    8{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 08:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 08:59:59")+"'";break}
+                    9{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 09:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 09:59:59")+"'";break}
+                    10{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 10:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 10:59:59")+"'";break}
+                    11{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 11:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 11:59:59")+"'";break}
+                    12{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 12:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 12:59:59")+"'";break}
+                    13{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 13:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 13:59:59")+"'";break}
+                    14{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 14:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 14:59:59")+"'";break}
+                    15{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 15:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 15:59:59")+"'";break}
+                    16{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 16:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 16:59:59")+"'";break}
+                    17{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 17:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 17:59:59")+"'";break}
+                    18{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 18:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 18:59:59")+"'";break}
+                    19{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 19:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 19:59:59")+"'";break}
+                    20{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 20:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 20:59:59")+"'";break}
+                    21{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 21:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 21:59:59")+"'";break}
+                    22{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 22:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 22:59:59")+"'";break}
+                    23{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 23:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 23:59:59")+"'";break}
+                    }
+                    $addition = $datesArray.Add($temp)
+                }
+            }
+
+
+
+        # an h hmeromhnia pou irthe apexei apo th shmerinh perissores apo 7 meres (arithmos 7) kai ligoteres apo 30
+        # tote ftiakse fiasthmata ths mias meras
+        } elseif ($timeSpan.Days -gt 7 -and $timeSpan.Days -le 30){
+
+             for ($i=0; $DateToWorkWith.AddDays($i).date -le (Get-Date).date; $i++){
+                $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 00:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 23:59:59")+"'"
+                $addition = $datesArray.Add($temp)
+            }
+
+
+
+        # an h hmeromhnia pou irthe apexei apo th shmerinh perissores apo 30
+        # tote ftiakse fiasthmata ths mias vdomadas
+        } elseif ($timeSpan.Days -gt 30){
+            if ($DateToWorkWith.DayOfWeek.value__ -ne 0){
+                switch ($DateToWorkWith.DayOfWeek.value__){
+                1 { 
+                    $temp = "'"+$DateToWorkWith.ToString("MM/dd/yyyy 00:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays(5).ToString("MM/dd/yyyy 23:59:59")+"'"
+                    $next = $DateToWorkWith.AddDays(6)
+                ;break}
+                2 { 
+                    $temp = "'"+$DateToWorkWith.ToString("MM/dd/yyyy 00:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays(4).ToString("MM/dd/yyyy 23:59:59")+"'"
+                    $next = $DateToWorkWith.AddDays(5)
+                ;break}
+                3 { 
+                    $temp = "'"+$DateToWorkWith.ToString("MM/dd/yyyy 00:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays(3).ToString("MM/dd/yyyy 23:59:59")+"'"
+                    $next = $DateToWorkWith.AddDays(4)
+                ;break}
+                4 { 
+                    $temp = "'"+$DateToWorkWith.ToString("MM/dd/yyyy 00:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays(2).ToString("MM/dd/yyyy 23:59:59")+"'"
+                    $next = $DateToWorkWith.AddDays(3)
+                ;break}
+                5 { 
+                    $temp = "'"+$DateToWorkWith.ToString("MM/dd/yyyy 00:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays(1).ToString("MM/dd/yyyy 23:59:59")+"'"
+                    $next = $DateToWorkWith.AddDays(2)
+                ;break}
+                6 { 
+                    $temp = "'"+$DateToWorkWith.ToString("MM/dd/yyyy 00:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.ToString("MM/dd/yyyy 23:59:59")+"'"
+                    $next = $DateToWorkWith.AddDays(1)
+                ;break}
+
+                }
+                $addition = $datesArray.Add($temp)
+            } else {
+                $next = $DateToWorkWith
+            }
+            
+            [System.Collections.ArrayList]$dates = (Get-DatesUntilNow -DateTime $next)
+            $dates.reverse()
+            
+            foreach ($date in $dates){
+                if ($date.DayOfWeek.value__ -eq 0){
+                    $temp = "'"+$date.ToString("MM/dd/yyyy 00:00:00")+"'"+" AND "+ "'"+$date.AddDays(6).ToString("MM/dd/yyyy 23:59:59")+"'"
+                    $addition = $datesArray.Add($temp)
+                }      
+            }
+            # edw epese poly texnh filaraki :P
+        }        
+    }
+    End
+    {        
+        Write-Output $datesArray
+    }
+}
+
+## First Group ## END
+# cmdlets that are used only within this module
+# ==================================================================
+
+
+
+# ==================================================================
+## Second Group ## START
+# cmdlets that are used only from the script: "LogVisualization.ps1"
+
+<#
+.NAME
+   
+
+.SYNOPSIS
+   
+
+.SYNTAX
+
+   
+.DESCRIPTION
+   
+   
+.PARAMETERS
+
+.INPUTS
+
+.OUTPUTS
+
+.NOTES
+
+.EXAMPLE
+
+   -------------------------- EXAMPLE 1 --------------------------
+
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
+
+.EXAMPLE
+
+   -------------------------- EXAMPLE 2 --------------------------
+
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
+
+
+#>
+function Get-TableRowNumber
 {
     [CmdletBinding()]
     [OutputType([int])]
@@ -1685,190 +1816,109 @@ function Set-TableAutoIncrementValue
                    ValueFromPipelineByPropertyName=$true,
                    Position=0)]
         [String[]]$Table,
-        [int]$Value=0
-
-      
+        [String]$After,
+        [string]$LogName
     )
-
     Process
     {
         foreach ($ta in $Table){
 
-                $query = "DBCC CHECKIDENT ('$ta',reseed,$Value)"              
-                
-                Write-Verbose "Query from 'Set-TableAutoIncrementValue cmdlet' will be: '$query'"
+            #$After = $After.Substring(
 
-                Invoke-LogDatabaseQuery -connection $LogConnectionString `
-                                        -isSQLServer `
-                                        -query $query
-        }
-        
-    }
-}
-
-
-
-<#
-.Synopsis
-   Short description
-.DESCRIPTION
-   Long description
-.EXAMPLE
-   Example of how to use this cmdlet
-.EXAMPLE
-   Another example of how to use this cmdlet
-#>
-function Get-CaptionFromSId
-{
-    [CmdletBinding()]
-    [OutputType([String])]
-    Param
-    (
-        # Param1 help description
-        [Parameter(Mandatory=$true,
-                   ValueFromPipelineByPropertyName=$true,
-                   Position=0)]
-        [string]$Sid
-    )
-    Process
-    {
-        [System.Management.ManagementObject[]]$s = Get-WmiObject -Class Win32_Account
-        
-        foreach ($ob in $s){
-            if($ob.sid -eq $Sid){
-                Write-Output $ob.caption
-            }        
-        }
-        
-        if($Sid -eq "S-1-0-0"){
-            Write-Output "NULL-SID"
-        }
-    }
-}
-
-<#
-.Synopsis
-   Short description
-.DESCRIPTION
-   Long description
-.EXAMPLE
-   Example of how to use this cmdlet
-.EXAMPLE
-   Another example of how to use this cmdlet
-#>
-function Get-SecurityMessageAsObject
-{
-    [CmdletBinding()]
-    [OutputType([int])]
-    Param
-    (
-        # Param1 help description
-        [Parameter(Mandatory=$true,
-                   ValueFromPipelineByPropertyName=$true,
-                   Position=0)]
-        [System.Diagnostics.Eventing.Reader.EventLogRecord]$EventLogObject
-    )
-
-    Begin
-    {
-    }
-    Process
-    {
-        
-    }
-    End
-    {
-    }
-}
-
-<#
-.Synopsis
-   Short description
-.DESCRIPTION
-   Long description
-.EXAMPLE
-   Example of how to use this cmdlet
-.EXAMPLE
-   Another example of how to use this cmdlet
-#>
-function Get-LastStoredEvent
-{
-    [CmdletBinding()]
-    [OutputType([String[]])]
-    Param
-    (
-        # Param1 help description
-        [Parameter(Mandatory=$true,
-                   ValueFromPipelineByPropertyName=$true,
-                   Position=0)]
-        [String]$LogName
-    )
-    Process
-    {    
-        $a = Get-LogDatabaseData -connectionString $LogConnectionString `
+            if ($After -eq 0){
+                  
+                [int]$number = (Get-LogDatabaseData -connectionString $LogConnectionString `
                                  -isSQLServer `
-                                 -query "SELECT TOP 1 * from EVENTS
-                                         WHERE LogName = '$LogName'
-                                         ORDER BY EventRecordId DESC"
+                                 -query "SELECT COUNT(*) from $ta").item(0)
 
-        $b= $a.LogName    
-        $c = [string]$a.eventrecordid
-        $d = $a.timeCreated
-        [String[]]$out= $b,$c, $d
-        Write-Output $out
-      
+                Write-Output $number
+
+                if ($LogName -ne ""){
+
+
+
+                }
+
+            } else {
+
+                [int]$number = (Get-LogDatabaseData -connectionString $LogConnectionString `
+                                 -isSQLServer `
+                                 -query "SELECT COUNT(*) AS Count from $ta
+                                         WHERE TimeCreated >= '$After'").Count
+
+                Write-Output $number
+
+
+            }
+
+        
+        }
     }
 }
 
 
 <#
-.Synopsis
-   Short description
+.NAME
+   Get-LastEventDateFromDatabase
+
+.SYNOPSIS
+   It removes all the contents from any table of the database.
+
+.SYNTAX
+   
 .DESCRIPTION
-   Long description
+   
+   This cmdlet Clear-TableContentsFromDatabase helps you interact with the LogDatabase
+   and erase the contents of a specific table. You can pass multible tables at once. See examples.
+
+.PARAMETERS
+
+.INPUTS
+
+.OUTPUTS
+
+.NOTES
+
 .EXAMPLE
-   Example of how to use this cmdlet
+
+   -------------------------- EXAMPLE 1 --------------------------
+
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
+
 .EXAMPLE
-   Another example of how to use this cmdlet
+
+   -------------------------- EXAMPLE 2 --------------------------
+
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
+
+
 #>
-function Get-AllEventsGroupByLogName
+function Get-LastEventDateFromDatabase
 {
     [CmdletBinding()]
-    [OutputType([int])]
+    #[OutputType([String])]
     Param
     (
-        <# Param1 help description
+        # Param1 help description
         [Parameter(Mandatory=$true,
                    ValueFromPipelineByPropertyName=$true,
                    Position=0)]
-        $Param1,
-
+        [string]$Table
         # Param2 help description
-        [int]
-        $Param2
-        #>
+       
+        
     )
 
     Begin
     {
-        [System.Collections.Hashtable]$hash = [ordered]@{}
     }
     Process
     {
-        $a = Get-LogDatabaseData -connectionString $LogConnectionString `
-                                 -isSQLServer `
-                                 -query "SELECT LogName, count(*) from EVENTS                                         
-                                         GROUP BY LogName"
-        
-        
-
-        foreach ($in in $a){
-            $hash.add($in.logname, $in.Column1)
-        }
-
-        
-        Write-Output $hash
-        
+        [string]$eve = (Get-LogDatabaseData -connectionString $LogConnectionString `
+                                               -isSQLServer `
+                                               -query "SELECT TOP 1 TimeCreated from $Table").TimeCreated
+       # Write-Output 
+       $eve                                         
 
     }
     End
@@ -1876,17 +1926,43 @@ function Get-AllEventsGroupByLogName
     }
 }
 
+
 <#
-.Synopsis
-   Short description
+.NAME
+   
+
+.SYNOPSIS
+   
+
+.SYNTAX
+
+   
 .DESCRIPTION
-   Long description
+   
+   
+.PARAMETERS
+
+.INPUTS
+
+.OUTPUTS
+
+.NOTES
+
 .EXAMPLE
-   Example of how to use this cmdlet
+
+   -------------------------- EXAMPLE 1 --------------------------
+
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
+
 .EXAMPLE
-   Another example of how to use this cmdlet
+
+   -------------------------- EXAMPLE 2 --------------------------
+
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
+
+
 #>
-function Get-EventsGroupByEventId
+function Get-EventsOccured
 {
     [CmdletBinding()]
     [OutputType([int])]
@@ -1896,45 +1972,201 @@ function Get-EventsGroupByEventId
         [Parameter(Mandatory=$true,
                    ValueFromPipelineByPropertyName=$true,
                    Position=0)]
-        $LogName
+        $Table,
+        [Parameter(Mandatory=$true)]
+        [string]$After,
+        [string]$LogName,
+        [string]$SecurityType
     )
 
     Begin
     {
-        [System.Collections.Hashtable]$hash = [ordered]@{}
+       # Write-Host $After
     }
     Process
     {
-        $a = Get-LogDatabaseData -connectionString $LogConnectionString `
-                                 -isSQLServer `
-                                 -query "SELECT EventId, count(*) from EVENTS   
-                                         WHERE LogName = '$LogName'                                      
-                                         GROUP BY EventId"
-        
+
+        # an den exei erthei logname shmainei oti ta thelei ola kai mpainei edw 
+        if ($LogName.Equals("")){
+            $query = "SELECT COUNT(*) AS Count FROM $Table
+                      WHERE TimeCreated >= '$After'"
         
 
-        foreach ($in in $a){
-            $hash.add($in.eventid, $in.Column1)
+        # an exei erthei logname shmainei oti thelei mono kapoio logname ara mpainei edw
+        } elseif ($LogName -ne ""){
+
+            # an to logname pou irthe den einai security mpainei edw
+            if ($LogName -ne "Security"){
+                $query = "SELECT COUNT(*) AS Count FROM $Table
+                          WHERE LogName = '$LogName' 
+                          AND TimeCreated >= '$After'"
+
+            # an to logname pou irthe einai security mpainei edw kai elegxei an irthei kai securitytype mazi
+            } elseif ($LogName -eq "Security"){
+                
+                if ($SecurityType -eq "Failure"){
+                    $query = "SELECT COUNT(*) AS Count FROM $Table
+                              WHERE LogName = '$LogName' AND EventId = 4625
+                              AND TimeCreated >= '$After'"
+
+                } elseif ($SecurityType -eq "Success"){
+                    $query = "SELECT COUNT(*) AS Count FROM $Table
+                              WHERE LogName = '$LogName' AND EventId = 4624
+                              AND TimeCreated >= '$After'"
+
+                } elseif ($SecurityType -eq ""){
+                    $query = "SELECT COUNT(*) AS Count FROM $Table
+                              WHERE LogName = '$LogName' 
+                              AND TimeCreated >= '$After'"
+
+                }
+
+
+            }
         }
 
-        
-        Write-Output $hash
-        
+
     }
     End
     {
+        #phre to query kai twra epikoinwnei me th vash
+        $result = (Get-LogDatabaseData -connectionString $LogConnectionString `
+                                 -isSQLServer `
+                                 -query $query).Count
+        Write-Output $result
     }
 }
 
+
 <#
-.Synopsis
-   Short description
-.DESCRIPION
-   Long description
+.NAME
+   
+
+.SYNOPSIS
+   
+
+.SYNTAX
+
+   
+.DESCRIPTION
+   
+   
+.PARAMETERS
+
+.INPUTS
+
+.OUTPUTS
+
+.NOTES
+
 .EXAMPLE
-   Example of how to use this cmdlet
+
+   -------------------------- EXAMPLE 1 --------------------------
+
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
+
 .EXAMPLE
-   Another example of how to use this cmdlet
+
+   -------------------------- EXAMPLE 2 --------------------------
+
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
+
+
+#>
+function Get-HashTableForPieChart
+{
+    [CmdletBinding()]
+    #[OutputType([int])]
+    Param
+    (
+        # Param1 help description
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$false,
+                   Position=0)]
+        [string]$Table,
+        [Parameter(Mandatory=$true)]
+        [string]$After,
+        [string]$LogName,
+        [switch]$EventId
+    )
+
+    Begin
+    {
+        [System.Collections.Hashtable]$hashTable = [ordered]@{}
+    }
+    Process
+    {
+         # an den exei erthei logname shmainei oti tha kanei omadopoihsh ana LOGNAME kai mpainei edw 
+        if ($LogName.Equals("")){
+            $query = "SELECT LogName AS Name, COUNT(*) AS Count FROM $Table
+                      WHERE TimeCreated >= '$After'
+                      GROUP BY LogName
+                      ORDER BY Count DESC"
+        
+
+        # an exei erthei logname shmainei oti thelei omadopohsh ana EVENTID ara mpainei edw
+        } elseif ($LogName -ne ""){
+
+            $query = "SELECT EventId AS Name, COUNT(*) AS Count FROM $Table
+                          WHERE LogName = '$LogName' 
+                          AND TimeCreated >= '$After'
+                          GROUP BY EventId
+                          ORDER BY Count DESC"
+
+        }
+    }
+
+    End
+    {
+        #phre to query kai twra epikoinwnei me th vash
+        $result = Get-LogDatabaseData -connectionString $LogConnectionString `
+                                 -isSQLServer `
+                                 -query $query
+
+
+        
+        foreach ($res in $result){
+            $hashTable.Add(($res.Name).tostring(),$res.Count)
+        }
+        Write-Output $hashTable
+    }
+}
+
+
+<#
+.NAME
+   
+
+.SYNOPSIS
+   
+
+.SYNTAX
+
+   
+.DESCRIPTION
+   
+   
+.PARAMETERS
+
+.INPUTS
+
+.OUTPUTS
+
+.NOTES
+
+.EXAMPLE
+
+   -------------------------- EXAMPLE 1 --------------------------
+
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
+
+.EXAMPLE
+
+   -------------------------- EXAMPLE 2 --------------------------
+
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
+
+
 #>
 function Get-HashTableForTimeLineChart
 {
@@ -2070,548 +2302,39 @@ function Get-HashTableForTimeLineChart
 
 
 <#
-.Synopsis
-   Short description
+.NAME
+   
+
+.SYNOPSIS
+   
+
+.SYNTAX
+
+   
 .DESCRIPTION
-   Long description
+   
+   
+.PARAMETERS
+
+.INPUTS
+
+.OUTPUTS
+
+.NOTES
+
 .EXAMPLE
-   Example of how to use this cmdlet
+
+   -------------------------- EXAMPLE 1 --------------------------
+
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
+
 .EXAMPLE
-   Another example of how to use this cmdlet
-#>
-function Get-TimeRangesForNames
-{
-    [CmdletBinding()]
-    [OutputType([int])]
-    Param
-    (
-        # Param1 help description
-        [Parameter(Mandatory=$true,
-                   ValueFromPipelineByPropertyName=$true,
-                   Position=0)]
-        [string]$DateTime
-    )
 
-     Begin
-    {
-        $namesArray = New-Object System.Collections.ArrayList
-        #metatrepw to string pou irhte se antikeimeno DateTime
-        $DateToWorkWith = [System.DateTime]$DateTime
+   -------------------------- EXAMPLE 2 --------------------------
 
-        # dhmiourgontas ena antikeimeno TimeSpan mporw na vrw poses meres apexei h hmeromhnia pou irthe apo th current date
-        $timeSpan = New-TimeSpan -Start $DateToWorkWith -End (get-date)
-    }
-    Process
-    {
-        # an h hmeromhnia pou irthe apo th shmerinh apexei ligoteres h ises me 7 meres (arithmos 7)
-        # tote ftiakse fiasthmata ths mias wras
-        if ($timeSpan.Days -lt 7){
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
 
-            #gia kathe mia apo tis meres ftiakse diasthmata mias wras
-            # etoima gia na xrhsimopoihthoun ws erwthma sthn sql
-            for ($i = 0 ; ($i -le $timeSpan.Days); $i++){
-                for ($j = 0; $j -le 23; $j++){
-                    switch ($j){
-                    0{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_00-01";break}
-                    1{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_01-02";break}
-                    2{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_02-03";break}
-                    3{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_03-04";break}
-                    4{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_04-05";break}
-                    5{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_05-06";break}
-                    6{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_06-07";break}
-                    7{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_07-08";break}
-                    8{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_08-09";break}
-                    9{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_09-10";break}
-                    10{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_10-11";break}
-                    11{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_11-12";break}
-                    12{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_12-13";break}
-                    13{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_13-14";break}
-                    14{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_14-15";break}
-                    15{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_15-16";break}
-                    16{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_16-17";break}
-                    17{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_17-18";break}
-                    18{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_18-19";break}
-                    19{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_19-20";break}
-                    20{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_20-21";break}
-                    21{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_21-22";break}
-                    22{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_22-23";break}
-                    23{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_23-00";break}
-                    }
-                    $addition = $namesArray.Add($temp)
-                }
-            }
 
-
-        # an h hmeromhnia pou irthe apexei apo th shmerinh perissores apo 7 meres (arithmos 7) kai ligoteres apo 30
-        # tote ftiakse fiasthmata ths mias meras
-        } elseif ($timeSpan.Days -gt 7 -and $timeSpan.Days -le 30){
-            # gia kathe mera apo th prwth mera pou irthe ftiaxnei ena str tou typou px 12_Jun mexri na ftasei th shmerinh hmeromhnia
-            for ($i=0; $DateToWorkWith.AddDays($i).date -le (Get-Date).date; $i++){
-
-                $temp = $DateToWorkWith.AddDays($i).ToString("dd_MMM")  
-                $addition = $namesArray.Add($temp)
-            }
-
-
-        # an h hmeromhnia pou irthe apexei apo th shmerinh perissores apo 30
-        # tote ftiakse fiasthmata ths mias vdomadas
-        } elseif ($timeSpan.Days -gt 30){
-            
-            $weekCameFromDate = Get-NumberOfWeekOfDate -DateTime $DateToWorkWith
-
-            $weekOfCurrentDate = Get-NumberOfWeekOfDate -DateTime (Get-date)
-        
-            for ($i = $weekCameFromDate; $i -le $weekOfCurrentDate; $i++){
-                
-                $addition = $namesArray.Add("Week_$i")
-            }
-
-        }
-        
-
-        
-    }
-    End
-    {
-       
-        Write-Output $namesArray
-    }
-    
-}
-
-<#
-.Synopsis
-   Short description
-.DESCRIPTION
-   Long description
-.EXAMPLE
-   Example of how to use this cmdlet
-.EXAMPLE
-   PS C:\Windows\system32> Get-TimeRangesForValues -DateTime "02/05/2015 00:00:00"
-    '02/05/2015 00:00:00' AND '02/07/2015 23:59:59'
-    '02/08/2015 00:00:00' AND '02/14/2015 23:59:59'
-    '02/15/2015 00:00:00' AND '02/21/2015 23:59:59'
-    '02/22/2015 00:00:00' AND '02/28/2015 23:59:59'
-    '03/01/2015 00:00:00' AND '03/07/2015 23:59:59'
-    '03/08/2015 00:00:00' AND '03/14/2015 23:59:59'
-    '03/15/2015 00:00:00' AND '03/21/2015 23:59:59'
-    '03/22/2015 00:00:00' AND '03/28/2015 23:59:59'
-    '03/29/2015 00:00:00' AND '04/04/2015 23:59:59'
-    '04/05/2015 00:00:00' AND '04/11/2015 23:59:59'
-    '04/12/2015 00:00:00' AND '04/18/2015 23:59:59'
-    '04/19/2015 00:00:00' AND '04/25/2015 23:59:59'
-    '04/26/2015 00:00:00' AND '05/02/2015 23:59:59'
-    '05/03/2015 00:00:00' AND '05/09/2015 23:59:59'
-    '05/10/2015 00:00:00' AND '05/16/2015 23:59:59'
-    '05/17/2015 00:00:00' AND '05/23/2015 23:59:59'
-    '05/24/2015 00:00:00' AND '05/30/2015 23:59:59'
-    '05/31/2015 00:00:00' AND '06/06/2015 23:59:59'
-    '06/07/2015 00:00:00' AND '06/13/2015 23:59:59'
-    '06/14/2015 00:00:00' AND '06/20/2015 23:59:59'
-#>
-function Get-TimeRangesForValues
-{
-    [CmdletBinding()]
-    [OutputType([int])]
-    Param
-    (
-        # Param1 help description
-        [Parameter(Mandatory=$true,
-                   ValueFromPipelineByPropertyName=$true,
-                   Position=0)]
-        [string]$DateTime
-    )
-
-    Begin
-    {
-        $datesArray = New-Object System.Collections.ArrayList
-        #metatrepw to string pou irhte se antikeimeno DateTime
-        $DateToWorkWith = [System.DateTime]$DateTime
-
-        # dhmiourgontas ena antikeimeno TimeSpan mporw na vrw poses meres apexei h hmeromhnia pou irthe apo th current date
-        $timeSpan = New-TimeSpan -Start $DateToWorkWith -End (get-date)
-    }
-    Process
-    {
-        # an h hmeromhnia pou irthe apo th shmerinh apexei ligoteres h ises me 7 meres (arithmos 7)
-        # tote ftiakse fiasthmata ths mias wras
-        if ($timeSpan.Days -lt 7){
-
-            #gia kathe mia apo tis meres ftiakse diasthmata mias wras
-            # etoima gia na xrhsimopoihthoun ws erwthma sthn sql
-            for ($i = 0 ; ($i -le $timeSpan.Days); $i++){
-                for ($j = 0; $j -le 23; $j++){
-                    switch ($j){
-                    0{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 00:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 00:59:59")+"'";break}
-                    1{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 01:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 01:59:59")+"'";break}
-                    2{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 02:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 02:59:59")+"'";break}
-                    3{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 03:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 03:59:59")+"'";break}
-                    4{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 04:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 04:59:59")+"'";break}
-                    5{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 05:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 05:59:59")+"'";break}
-                    6{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 06:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 06:59:59")+"'";break}
-                    7{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 07:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 07:59:59")+"'";break}
-                    8{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 08:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 08:59:59")+"'";break}
-                    9{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 09:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 09:59:59")+"'";break}
-                    10{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 10:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 10:59:59")+"'";break}
-                    11{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 11:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 11:59:59")+"'";break}
-                    12{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 12:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 12:59:59")+"'";break}
-                    13{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 13:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 13:59:59")+"'";break}
-                    14{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 14:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 14:59:59")+"'";break}
-                    15{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 15:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 15:59:59")+"'";break}
-                    16{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 16:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 16:59:59")+"'";break}
-                    17{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 17:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 17:59:59")+"'";break}
-                    18{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 18:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 18:59:59")+"'";break}
-                    19{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 19:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 19:59:59")+"'";break}
-                    20{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 20:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 20:59:59")+"'";break}
-                    21{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 21:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 21:59:59")+"'";break}
-                    22{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 22:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 22:59:59")+"'";break}
-                    23{ $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 23:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 23:59:59")+"'";break}
-                    }
-                    $addition = $datesArray.Add($temp)
-                }
-            }
-
-
-
-        # an h hmeromhnia pou irthe apexei apo th shmerinh perissores apo 7 meres (arithmos 7) kai ligoteres apo 30
-        # tote ftiakse fiasthmata ths mias meras
-        } elseif ($timeSpan.Days -gt 7 -and $timeSpan.Days -le 30){
-
-             for ($i=0; $DateToWorkWith.AddDays($i).date -le (Get-Date).date; $i++){
-                $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 00:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 23:59:59")+"'"
-                $addition = $datesArray.Add($temp)
-            }
-
-
-
-        # an h hmeromhnia pou irthe apexei apo th shmerinh perissores apo 30
-        # tote ftiakse fiasthmata ths mias vdomadas
-        } elseif ($timeSpan.Days -gt 30){
-
-            $weekCameFromDate = Get-NumberOfWeekOfDate -DateTime $DateToWorkWith
-
-            $weekOfCurrentDate = Get-NumberOfWeekOfDate -DateTime (Get-date)
-
-            if ($DateToWorkWith.DayOfWeek.value__ -ne 0){
-                switch ($DateToWorkWith.DayOfWeek.value__){
-                1 { 
-                    $temp = "'"+$DateToWorkWith.ToString("MM/dd/yyyy 00:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays(5).ToString("MM/dd/yyyy 23:59:59")+"'"
-                    $next = $DateToWorkWith.AddDays(6)
-                ;break}
-                2 { 
-                    $temp = "'"+$DateToWorkWith.ToString("MM/dd/yyyy 00:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays(4).ToString("MM/dd/yyyy 23:59:59")+"'"
-                    $next = $DateToWorkWith.AddDays(5)
-                ;break}
-                3 { 
-                    $temp = "'"+$DateToWorkWith.ToString("MM/dd/yyyy 00:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays(3).ToString("MM/dd/yyyy 23:59:59")+"'"
-                    $next = $DateToWorkWith.AddDays(4)
-                ;break}
-                4 { 
-                    $temp = "'"+$DateToWorkWith.ToString("MM/dd/yyyy 00:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays(2).ToString("MM/dd/yyyy 23:59:59")+"'"
-                    $next = $DateToWorkWith.AddDays(3)
-                ;break}
-                5 { 
-                    $temp = "'"+$DateToWorkWith.ToString("MM/dd/yyyy 00:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays(1).ToString("MM/dd/yyyy 23:59:59")+"'"
-                    $next = $DateToWorkWith.AddDays(2)
-                ;break}
-                6 { 
-                    $temp = "'"+$DateToWorkWith.ToString("MM/dd/yyyy 00:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.ToString("MM/dd/yyyy 23:59:59")+"'"
-                    $next = $DateToWorkWith.AddDays(1)
-                ;break}
-
-                }
-                $addition = $datesArray.Add($temp)
-            } else {
-                $next = $DateToWorkWith
-            }
-            
-            [System.Collections.ArrayList]$dates = (Get-DatesUntilNow -DateTime $next)
-            $dates.reverse()
-            
-            foreach ($date in $dates){
-
-                if ($date.DayOfWeek.value__ -eq 0){
-                    $temp = "'"+$date.ToString("MM/dd/yyyy 00:00:00")+"'"+" AND "+ "'"+$date.AddDays($i+6).ToString("MM/dd/yyyy 23:59:59")+"'"
-
-                    $addition = $datesArray.Add($temp)
-                }
-                
-
-            }
-            # edw epese poly texnh filaraki :P
-        }
-        
-    }
-    End
-    {
-        
-        Write-Output $datesArray
-    }
-}
-
-
-
-<#
-.Synopsis
-   Short description
-.DESCRIPTION   Long description
-   #dexetai mia hmeromhnia apo to parelthon kai epistrefei lista me oles tis hmeromhnies apo to shmera mexri tote
-.EXAMPLE
-   Example of how to use this cmdlet
-.EXAMPLE
-   Another example of how to use this cmdlet
-#>
-function Get-DatesUntilNow
-{
-    [CmdletBinding()]
-    #[OutputType([int])]
-    Param
-    (
-        # Param1 help description
-        [Parameter(Mandatory=$true,
-                   ValueFromPipelineByPropertyName=$true,
-                   Position=0)]
-        [System.DateTime]$DateTime,
-        [switch]$Reverse
-    )
-
-    Begin
-    {
-        $DatesArray = New-Object System.Collections.ArrayList
-        $co = 0
-    }
-    Process
-    {   
-
-        $timeSpan = (New-TimeSpan -Start (Get-Date) -End $DateTime).Days*-1
-
-        for ($in =0; $in -le $timeSpan; $in++ ) {
-            $forDay = (Get-Date).AddDays(-$in)
-            $ArrayListAddition = $DatesArray.Add($forDay)
-            $co = $co-1
-        }    
-        
-        if ($Reverse){
-            $DatesArray.Reverse()
-        } 
-        
-    }
-    End
-    {        
-        return $DatesArray
-    }
-}
-
-
-<#
-.Synopsis
-   Short description
-.DESCRIPTION
-   Long description
-.EXAMPLE
-   Example of how to use this cmdlet
-.EXAMPLE
-   http://stackoverflow.com/questions/23472027/how-is-first-day-of-week-dermined-in-powershell
-#>
-function Get-NumberOfWeekOfDate
-{
-    [CmdletBinding()]
-    [OutputType([int])]
-    Param
-    (
-        # Param1 help description
-        [Parameter(Mandatory=$true,
-                   ValueFromPipelineByPropertyName=$true,
-                   Position=0)]
-        [string]$DateTime
-        
-    )
-    Process
-    {
-        [System.DateTime]$dateToWorkWith = $DateTime
-
-        $intDayOfWeek = $dateToWorkWith.DayOfWeek.value__
-        $daysToWednesday = (3 - $intDayOfWeek)
-        $wednesdayCurrentWeek = $dateToWorkWith.AddDays($daysToWednesday)
-
-        # %V basically gets the amount of '7 days' that have passed this year (starting at 1)
-        $week = get-date -date $wednesdayCurrentWeek -uFormat %V
-        $weekNumber = ([int]::Parse($week))
-        Write-Output $weekNumber
-
-    }
-    End
-    {
-    }
-}
-
-
-
-<#
-.Synopsis
-   Short description
-.DESCRIPTION
-   Long description
-.EXAMPLE
-   Example of how to use this cmdlet
-.EXAMPLE
-   Another example of how to use this cmdlet
-#>
-function Get-HashTableForPieChart
-{
-    [CmdletBinding()]
-    #[OutputType([int])]
-    Param
-    (
-        # Param1 help description
-        [Parameter(Mandatory=$true,
-                   ValueFromPipelineByPropertyName=$false,
-                   Position=0)]
-        [string]$Table,
-        [Parameter(Mandatory=$true)]
-        [string]$After,
-        [string]$LogName,
-        [switch]$EventId
-    )
-
-    Begin
-    {
-        [System.Collections.Hashtable]$hashTable = [ordered]@{}
-    }
-    Process
-    {
-         # an den exei erthei logname shmainei oti tha kanei omadopoihsh ana LOGNAME kai mpainei edw 
-        if ($LogName.Equals("")){
-            $query = "SELECT LogName AS Name, COUNT(*) AS Count FROM $Table
-                      WHERE TimeCreated >= '$After'
-                      GROUP BY LogName
-                      ORDER BY Count DESC"
-        
-
-        # an exei erthei logname shmainei oti thelei omadopohsh ana EVENTID ara mpainei edw
-        } elseif ($LogName -ne ""){
-
-            $query = "SELECT EventId AS Name, COUNT(*) AS Count FROM $Table
-                          WHERE LogName = '$LogName' 
-                          AND TimeCreated >= '$After'
-                          GROUP BY EventId
-                          ORDER BY Count DESC"
-
-        }
-    }
-
-    End
-    {
-        #phre to query kai twra epikoinwnei me th vash
-        $result = Get-LogDatabaseData -connectionString $LogConnectionString `
-                                 -isSQLServer `
-                                 -query $query
-
-
-        
-        foreach ($res in $result){
-            $hashTable.Add(($res.Name).tostring(),$res.Count)
-        }
-        Write-Output $hashTable
-    }
-}
-
-
-<#
-.Synopsis
-   Short description
-.DESCRIPTION
-   Long description
-.EXAMPLE
-   Example of how to use this cmdlet
-.EXAMPLE
-   Another example of how to use this cmdlet
-#>
-function Get-EventsOccured
-{
-    [CmdletBinding()]
-    [OutputType([int])]
-    Param
-    (
-        # Param1 help description
-        [Parameter(Mandatory=$true,
-                   ValueFromPipelineByPropertyName=$true,
-                   Position=0)]
-        $Table,
-        [Parameter(Mandatory=$true)]
-        [string]$After,
-        [string]$LogName,
-        [string]$SecurityType
-    )
-
-    Begin
-    {
-       # Write-Host $After
-    }
-    Process
-    {
-
-        # an den exei erthei logname shmainei oti ta thelei ola kai mpainei edw 
-        if ($LogName.Equals("")){
-            $query = "SELECT COUNT(*) AS Count FROM $Table
-                      WHERE TimeCreated >= '$After'"
-        
-
-        # an exei erthei logname shmainei oti thelei mono kapoio logname ara mpainei edw
-        } elseif ($LogName -ne ""){
-
-            # an to logname pou irthe den einai security mpainei edw
-            if ($LogName -ne "Security"){
-                $query = "SELECT COUNT(*) AS Count FROM $Table
-                          WHERE LogName = '$LogName' 
-                          AND TimeCreated >= '$After'"
-
-            # an to logname pou irthe einai security mpainei edw kai elegxei an irthei kai securitytype mazi
-            } elseif ($LogName -eq "Security"){
-                
-                if ($SecurityType -eq "Failure"){
-                    $query = "SELECT COUNT(*) AS Count FROM $Table
-                              WHERE LogName = '$LogName' AND EventId = 4625
-                              AND TimeCreated >= '$After'"
-
-                } elseif ($SecurityType -eq "Success"){
-                    $query = "SELECT COUNT(*) AS Count FROM $Table
-                              WHERE LogName = '$LogName' AND EventId = 4624
-                              AND TimeCreated >= '$After'"
-
-                } elseif ($SecurityType -eq ""){
-                    $query = "SELECT COUNT(*) AS Count FROM $Table
-                              WHERE LogName = '$LogName' 
-                              AND TimeCreated >= '$After'"
-
-                }
-
-
-            }
-        }
-
-
-    }
-    End
-    {
-        #phre to query kai twra epikoinwnei me th vash
-        $result = (Get-LogDatabaseData -connectionString $LogConnectionString `
-                                 -isSQLServer `
-                                 -query $query).Count
-        Write-Output $result
-    }
-}
-
-
-<#
-.Synopsis
-   Short description
-.DESCRIPTION
-   Long description
-.EXAMPLE
-   Example of how to use this cmdlet
-.EXAMPLE
-   Another example of how to use this cmdlet
 #>
 function Get-LogonIpAddresses
 {
@@ -2635,6 +2358,7 @@ function Get-LogonIpAddresses
     {
     
         if ($LogonType -eq "Failure"){
+            # from table4625 : failure logon events
             $query = "SELECT SourceNetworkAddress, COUNT(*) AS Count FROM DETAILS4625
                       WHERE TimeCreated >= '$After' 
                       GROUP BY SourceNetworkAddress
@@ -2642,13 +2366,15 @@ function Get-LogonIpAddresses
 
 
         } elseif($LogonType -eq "Success"){
-
+            
+            # from table4624 : successful logon events
             $query = "SELECT SourceNetworkAddress, COUNT(*) AS Count FROM DETAILS4624
                       WHERE TimeCreated >= '$After' 
                       GROUP BY SourceNetworkAddress
                       ORDER BY Count Desc"
         } elseif ($LogonType -eq "Explicit"){
 
+            # from table4648 : successful logon using explicit credentials events
             $query = "SELECT NetworkAddress, COUNT(*) AS Count FROM DETAILS4648
                       WHERE TimeCreated >= '$After' 
                       GROUP BY NetworkAddress
@@ -2687,14 +2413,39 @@ function Get-LogonIpAddresses
 
 
 <#
-.Synopsis
-   Short description
+.NAME
+   
+
+.SYNOPSIS
+   
+
+.SYNTAX
+
+   
 .DESCRIPTION
-   Long description
+   
+   
+.PARAMETERS
+
+.INPUTS
+
+.OUTPUTS
+
+.NOTES
+
 .EXAMPLE
-   Example of how to use this cmdlet
+
+   -------------------------- EXAMPLE 1 --------------------------
+
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
+
 .EXAMPLE
-   Another example of how to use this cmdlet
+
+   -------------------------- EXAMPLE 2 --------------------------
+
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
+
+
 #>
 function Get-TableContents
 {
@@ -2723,34 +2474,176 @@ function Get-TableContents
     }
 }
 
+## Second Group ## END
+# cmdlets that are used only from the script: "LogVisualization.ps1"
+# ==================================================================
 
 
+
+# ==================================================================
+## Third Group ## START
+# cmdlets that are used only from the script: "ScheduleLogs.ps1"
+
+<#
+.NAME
+   
+
+.SYNOPSIS
+   
+
+.SYNTAX
+
+   
+.DESCRIPTION
+   
+   
+.PARAMETERS
+
+.INPUTS
+
+.OUTPUTS
+
+.NOTES
+
+.EXAMPLE
+
+   -------------------------- EXAMPLE 1 --------------------------
+
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
+
+.EXAMPLE
+
+   -------------------------- EXAMPLE 2 --------------------------
+
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
+
+
+#>
+function Get-LastStoredEvent
+{
+    [CmdletBinding()]
+    [OutputType([String[]])]
+    Param
+    (
+        # Param1 help description
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true,
+                   Position=0)]
+        [String]$LogName
+    )
+    Process
+    {    
+        $a = Get-LogDatabaseData -connectionString $LogConnectionString `
+                                 -isSQLServer `
+                                 -query "SELECT TOP 1 * from EVENTS
+                                         WHERE LogName = '$LogName'
+                                         ORDER BY EventRecordId DESC"
+
+        $b= $a.LogName    
+        $c = [string]$a.eventrecordid
+        $d = $a.timeCreated
+        [String[]]$out= $b,$c, $d
+        Write-Output $out
+      
+    }
+}
+
+## Third Group ## END
+# cmdlets that are used only from the script: "ScheduleLogs.ps1"
+# ==================================================================
+
+
+
+# ==================================================================
+## Fourth Group ## START
+# cmdlets that are never used    
+
+<#
+.NAME
+   
+
+.SYNOPSIS
+   
+
+.SYNTAX
+
+   
+.DESCRIPTION
+   
+   
+.PARAMETERS
+
+.INPUTS
+
+.OUTPUTS
+
+.NOTES
+
+.EXAMPLE
+
+   -------------------------- EXAMPLE 1 --------------------------
+
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
+
+.EXAMPLE
+
+   -------------------------- EXAMPLE 2 --------------------------
+
+   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
+
+
+#>
+function Get-TableColumnNumber
+{
+    [CmdletBinding()]
+    [OutputType([int])]
+    Param
+    (
+        # Param1 help description
+        [Parameter(Mandatory=$true,
+                   ValueFromPipelineByPropertyName=$true,
+                   Position=0)]
+        [String[]]$Table
+    )
+    Process
+    {
+         foreach ($ta in $Table){
+        
+             Get-LogDatabaseData -connectionString $LogConnectionString `
+                                 -isSQLServer `
+                                 -query "select count(*)
+                                         from LogDB.sys.columns
+                                         where object_id=OBJECT_ID('$ta')"
+        
+        }
+    }
+}
+
+## Fourth Group ## END
+# cmdlets that are never used  
+# ==================================================================
 
 
 Export-ModuleMember -Variable MOLErrorLogPreference
-Export-ModuleMember -Function Set-LogNamesInDatabase,
-                              Get-LogTypesFromDatabase,
+Export-ModuleMember -Function Get-DatabaseAvailableTableNames,
                               Set-LogEventInDatabase,
-                              Get-TableContentsFromDatabase,
-                              Clear-TableContentsFromDatabase,
-                              Get-DatabaseAvailableTableNames,
-                              Get-TableRowNumber,
-                              Get-TableColumnNumber,
                               Set-TableAutoIncrementValue,
+                              Clear-TableContentsFromDatabase,
                               Get-CaptionFromSId,
                               Get-LogonType,
-                              Get-LastStoredEvent,
-                              Get-LastEventDateFromDatabase,
-                              Get-AllEventsGroupByLogName,
-                              Get-HashTableForPieChart,
+                              Get-ImpersonationLevelExplanation,
+                              Get-StatusExplanation,
                               Get-DatesUntilNow,
-                              Get-HashTableForTimeLineChart,
-                              Get-NumberOfWeekOfDate,
-                              Get-EventsGroupByEventId,
-                              Get-TimeRangesForValues,
-                              Get-EventsOccured,
                               Get-TimeRangesForNames,
-                              Get-FailureLogonsIpAddresses,
+                              Get-TimeRangesForValues,                             
+                              Get-TableRowNumber,
+                              Get-LastEventDateFromDatabase,
+                              Get-EventsOccured,
+                              Get-HashTableForPieChart,
+                              Get-HashTableForTimeLineChart,
                               Get-LogonIpAddresses,
-                              Get-TableContents
+                              Get-TableContents,
+                              Get-LastStoredEvent,
+                              Get-TableColumnNumber
+    
                              
