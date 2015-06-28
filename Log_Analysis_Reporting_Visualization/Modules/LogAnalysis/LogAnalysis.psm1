@@ -10,7 +10,7 @@ Import-Module LogDatabase
   # ______________________________________________________________________________________________________ 
   # ======================================================================================================
 
-  LogAnalysis Module contains 18 cmdlets. All these "LogAnalysis" cmdlets are divided in two 2 major groups.
+  LogAnalysis Module contains 18 cmdlets. All these "LogAnalysis" cmdlets are divided in two 4 major groups.
   
 
    ## First Group ##
@@ -60,18 +60,19 @@ Import-Module LogDatabase
 
 <#
 .NAME
-   
+   Get-DatabaseAvailableTableNames
 
 .SYNOPSIS
-   
+   Gets the available table names from database.
 
 .SYNTAX
-
+   Get-DatabaseAvailableTableNames cmdlet has not syntax.
    
 .DESCRIPTION
-   
+   The Get-DatabaseAvailableTableNames cmdlet gets the available table names from database.  
    
 .PARAMETERS
+   Get-DatabaseAvailableTableNames cmdlet has not parameters.
 
 .INPUTS
 
@@ -83,7 +84,7 @@ Import-Module LogDatabase
 
    -------------------------- EXAMPLE 1 --------------------------
 
-   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
+   PS C:\> Get-DatabaseAvailableTableNames
 
 .EXAMPLE
 
@@ -97,19 +98,14 @@ function Get-DatabaseAvailableTableNames
 {
     [CmdletBinding()]
     #[OutputType([String])]
-    Param
-    (     
-    )
+    Param()
     Process
     {
-
         Get-LogDatabaseData -connectionString $LogConnectionString `
-                                 -isSQLServer `
-                                 -query "SELECT TABLE_NAME
-                                         FROM INFORMATION_SCHEMA.TABLES
-                                         WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_CATALOG='LogDB'"
-
-                                     
+                            -isSQLServer `
+                            -query "SELECT TABLE_NAME
+                                    FROM INFORMATION_SCHEMA.TABLES
+                                    WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_CATALOG='LogDB'"                                     
     }
 }
 
@@ -2622,6 +2618,7 @@ function Get-TableColumnNumber
 ## Fourth Group ## END
 # cmdlets that are never used  
 # ==================================================================
+
 
 
 Export-ModuleMember -Variable MOLErrorLogPreference
