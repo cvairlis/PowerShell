@@ -66,19 +66,26 @@ Import-Module LogDatabase
    Gets the available table names from database.
 
 .SYNTAX
-   Get-DatabaseAvailableTableNames cmdlet has not syntax.
+   Get-DatabaseAvailableTableNames
    
 .DESCRIPTION
-   The Get-DatabaseAvailableTableNames cmdlet gets the available table names from database.  
+   The Get-DatabaseAvailableTableNames cmdlet gets the available table names from database.
+   More specifically it will go out, send a query to the database and outputs a dataset that 
+   will contains values of type strings representing the names of the tables of the database.
+   
+   The Get-DatabaseAvailableTableNames is been used from the Set-LogEventInDatabase cmdlet.
    
 .PARAMETERS
-   Get-DatabaseAvailableTableNames cmdlet has not parameters.
+   None
 
 .INPUTS
+   None
 
 .OUTPUTS
+   [System.Data.DataSet]
 
 .NOTES
+   None
 
 .EXAMPLE
 
@@ -86,18 +93,12 @@ Import-Module LogDatabase
 
    PS C:\> Get-DatabaseAvailableTableNames
 
-.EXAMPLE
-
-   -------------------------- EXAMPLE 2 --------------------------
-
-   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
-
+   This will return a dataset if strings that represent the names of the available tables of the database.
 
 #>
 function Get-DatabaseAvailableTableNames
 {
     [CmdletBinding()]
-    #[OutputType([String])]
     Param()
     Process
     {
@@ -121,18 +122,28 @@ function Get-DatabaseAvailableTableNames
    Set-LogEventInDatabase [[-EventLogRecordObject <System.Diagnostics.Eventing.Reader.EventLogRecord[]>]]
 
 .DESCRIPTION
-   "Set-LogEventInDatabase" is basically the first cmdlet it's been written for the LogAnalysis Module. 
-   It accepts objects of type: System.Diagnostics.Eventing.Reader.EventLogRecord and it works for storing information of events to the Database.
-   It uses the verb Set to be  to be perceived that it Sets something 
+   The Set-LogEventInDatabase cmdlet is basically the first cmdlet it has been written for the LogAnalysis Module. 
+   It accepts objects of type: System.Diagnostics.Eventing.Reader.EventLogRecord and it works for storing 
+   information of events to the Database.
 
 .PARAMETERS
+   -EventLogRecordObject <System.Diagnostics.Eventing.Reader.EventLogRecord[]>
+    Gives to the cmdlet an array of objects to be set in database.
+
+    Required?                    false
+    Position?                    1
+    Default value
+    Accept pipeline input?       true
+    Accept wildcard characters?  false
 
 .INPUTS
+   [System.Diagnostics.Eventing.Reader.EventLogRecord[]]
 
 .OUTPUTS
+   None
 
 .NOTES
-
+   None
 
 .EXAMPLE
 
@@ -140,42 +151,36 @@ function Get-DatabaseAvailableTableNames
 
    PS C:\> Get-WinEvent -LogName Application, Security, System | Sort-Object -Property TimeCreated | Set-LogEventInDatabase
 
-   This command uses the Get-WinEvent cmdlet to get all of the Application, Security and System events. It uses a pipeline operator (|) to send events to the Sort-Object cmdlet. 
-   Sort-Obejct command sort all these events by property TimeCreated and it uses pipeline again to send events to the Set-LogEventInDatabase command.
-   Set-LogEventInDatabase cmdlet accepts all these eventlogrecord objects and sends the objects, one at a time, to be parsed and stored in the Database.
-
-
+   This command uses the Get-WinEvent cmdlet to get all of the Application, Security and System events. It uses a pipeline operator (|) 
+   to send events to the Sort-Object cmdlet. Sort-Obejct command sort all these events by property TimeCreated and it uses pipeline again 
+   to send events to the Set-LogEventInDatabase command. Set-LogEventInDatabase cmdlet accepts all these eventlogrecord objects 
+   and sends the objects, one at a time, to be parsed and stored in the Database.
+   
 .EXAMPLE
-
-   It sends these objects to the Sort-Object cmdlet so the object
 
    -------------------------- EXAMPLE 2 --------------------------
   
 
    PS C:\> Get-WinEvent -LogName Application, Security, System | Sort-Object -Property TimeCreated | Where-Object -FilterScript {($_.Timecreated).Year -eq 2015} | Set-LogEventInDatabase
 
-   This command gets all the eventlogrecordobjects from the application, security and the system log. It send objects to the Sort-Object cmdlet to
+   This command uses the Get-WinEvent cmdlet to get all of the Application, Security and System events. It uses a pipeline operator (|) 
+   to send events to the Sort-Object cmdlet. Sort-Obejct command sort all these events by property TimeCreated and it uses pipeline again 
+   to send events to the Where-Object cmdlet. Where-Object is going to filter only events that created in year 2015 and send the to the 
+   Set-LogEventInDatabase command. Set-LogEventInDatabase cmdlet accepts all these eventlogrecord objects and sends the objects, one at a time,
+   to be parsed and stored in the Database.
 
 #>
 function Set-LogEventInDatabase
 {
     [CmdletBinding()]
-    #[OutputType([int])]
     Param
     (
-        # Param1 help description
         [Parameter(Mandatory=$true,
                    ValueFromPipeline=$true)]
-        [System.Diagnostics.Eventing.Reader.EventLogRecord[]]$EventLogRecordObject
-        
+        [System.Diagnostics.Eventing.Reader.EventLogRecord[]]$EventLogRecordObject       
     )
-
-    Begin
-    {
-    }
     Process
     {
-
         <# if you pass an eventlogrecord array as a parameter in Set-LogEventInDatabase cmdlet
            foreach loop will take this array and run the procedure foreach object of this array
            ---
@@ -183,21 +188,13 @@ function Set-LogEventInDatabase
            Set-LogEventInDatabase cmdlet will accept these objects one by one
            and foreach loop will be not used
         #>
-
-        foreach ($ev in $EventLogObject){
-
-        
-            #Write-Verbose "It will be stored $events.Count events from $log eventlog in database."
-
-
-            # antikathistw to char(') kai char(;) me keno giati yparxei provlima me thn eisagwgh sth vasi
-            # an to message einai keno apla vazw to keno message sth vasi kai de kalw methodo replace!!!
+        foreach ($ev in $EventLogObject){        
+            Write-Verbose "It will be stored $events.Count events from $log eventlog in database."
+            
+            # there was a problem by inserting in database nvarchar that contains "'" and ";" characters
+            # for this reason we replace char(') and char(;) with blank character to eliminate problems 
             [String]$messagestr = (($ev.Message -replace "'","") -replace ";","")
-            
-            
-            #$messagestr = $ev.Message.toString().Replace(";","")
-            #$messagestr
-                    
+            # here the query is been made               
             $query = "INSERT INTO EVENTS VALUES
                 ('$($ev.Id)',
                  '$($ev.Version)',
@@ -218,31 +215,36 @@ function Set-LogEventInDatabase
                  '$($ev.TaskDisplayName)',
                  '$($ev.KeywordsDisplayNames)',
                  '$messagestr')"
-
-                #Write-Host $ev.TimeCreated
                  
             Write-Verbose "Query will be: '$query'"
-
+            # here the query is been invoked
             Invoke-LogDatabaseQuery -connection $LogConnectionString `
-                                        -isSQLServer `
-                                        -query $query
-
-
-
-            if ($ev.LogName -eq "Security") {
+                                    -isSQLServer `
+                                    -query $query
             
+            <# After inserting basic events information in the database,
+             # Set-LogEventInDatabase will parse the message string of some critical security events
+             # and will create substantive tables with many critical information.
+             # 
+             # Critical events that tranform into tables are:
+             #  - DETAILS4624 : Successfull Logons
+             #  - DETAILS4625 : Failure Logons
+             #  - DETAILS4907 : Auditing settings on object were changed.
+             #  - DETAILS4672 : Special privileges assigned to new logon.
+             #  - DETAILS4634 : An account was logged off.
+             #  - DETAILS4648 : A logon was attempted using explicit credentials.
+             #  - DETAILS4797 : An attempt was made to query the existence of a blank password for an account.
+             #  - DETAILS4776 : The computer attempted to validate the credentials for an account.
+             #  - DETAILS4735 : A security-enabled local group was changed.
+             #>
+            if ($ev.LogName -eq "Security") {            
                 $evMessage = $ev.Message.ToString()
                 [String[]]$splitMessage = $evMessage -split "\r\n"
-                $shortMessage = $splitMessage.Get(0)
-                
-                if ($ev.Id -eq 4624){
-                    
-                    [String]$tableName = "DETAILS4624" 
-                        
-                    if (!((Get-DatabaseAvailableTableNames).table_name).contains($tableName)){
-                        
-                        Write-Verbose "Table $tableName not found. It will be created."
-                        
+                $shortMessage = $splitMessage.Get(0)                
+                if ($ev.Id -eq 4624){                    
+                    [String]$tableName = "DETAILS4624"                         
+                    if (!((Get-DatabaseAvailableTableNames).table_name).contains($tableName)){                        
+                        Write-Verbose "Table $tableName not found. It will be created."                        
                         Invoke-LogDatabaseQuery -connection $LogConnectionString `
                                                 -isSQLServer `
                                                 -query "CREATE TABLE $tableName (
@@ -288,8 +290,7 @@ function Set-LogEventInDatabase
                     [string]$tempAcc1 = $splitMessage.get(14).split(":").get(1).trimstart().trimend()
                     [string]$tempAcc2 = $splitMessage.get(15).split(":").get(1).trimstart().trimend()
 
-                    [string]$newLogonAcc = $tempAcc2 + "\" +$tempAcc1
-                    
+                    [string]$newLogonAcc = $tempAcc2 + "\" +$tempAcc1                  
 
                     [string]$callerProcessId = $splitMessage.get(20).split(":").get(1).trimstart().trimend().ToString()
                     
@@ -325,25 +326,18 @@ function Set-LogEventInDatabase
                             '$sourceNetworkAddress',
                             '$sourcePort',
                             '$logonProcess',
-                            '$authenticationPackage')"
+                            '$authenticationPackage')"      
                 
-                
-               
                     Write-Verbose "oh found security event $($ev.LogName)"
                     Write-Verbose "Query will be: '$query'"
     
                     Invoke-LogDatabaseQuery -connection $LogConnectionString `
                                             -isSQLServer `
-                                            -query $query
-                                         
+                                            -query $query                                         
                 } elseif ($ev.Id -eq 4625) {
-
                    [String]$tableName = "DETAILS4625"
-
-                    if (!((Get-DatabaseAvailableTableNames).table_name).contains($tableName)){
-                        
-                        Write-Verbose "Table $tableName not found. It will be created."
-                        
+                    if (!((Get-DatabaseAvailableTableNames).table_name).contains($tableName)){                        
+                        Write-Verbose "Table $tableName not found. It will be created."                        
                         Invoke-LogDatabaseQuery -connection $LogConnectionString `
                                                 -isSQLServer `
                                                 -query "CREATE TABLE DETAILS4625 (
@@ -374,8 +368,7 @@ function Set-LogEventInDatabase
                                                         ON [PRIMARY]                                                           
                                                          )"
                     }
-
-                    
+                                        
                     $sid = $splitMessage.get(3).split("").get($splitMessage.get(3).split("").count-1)
 
                     [String]$temp1 = $splitMessage.get(4).split("").get($splitMessage.get(4).split("").count-1)
@@ -401,8 +394,7 @@ function Set-LogEventInDatabase
                     [string]$subStatus = Get-StatusExplanation -Status $subCode
 
                     [string]$callerProcessId = $splitMessage.get(21).split("").Get($splitMessage.get(21).split("").count-1)
-                    
-                    
+                                        
                     [string[]]$callerProcessNameTemp1 = $splitMessage.get(22).split("")
                    
                     [String]$callerProcessName = $splitMessage.get(22).split("").Get($splitMessage.get(22).split("").count-1)
@@ -413,8 +405,6 @@ function Set-LogEventInDatabase
 
                     [string]$logonProcess = $splitMessage.get(30).split(":").Get(1).TrimStart().TrimEnd()
                     [string]$authenticationPackage = $splitMessage.get(31).split("").Get($splitMessage.Get(31).Split("").Count-1)
-
-                   
 
                     $query = "INSERT INTO DETAILS4625 VALUES
                            ('$($ev.LogName)',
@@ -438,25 +428,18 @@ function Set-LogEventInDatabase
                             '$sourceNtwAd',
                             '$sourcePrt',
                             '$logonProcess',
-                            '$authenticationPackage')"    
+                            '$authenticationPackage')"  
                 
-               
                     Write-Verbose "oh found security event $($ev.LogName)"
                     Write-Verbose "Query will be: '$query'"
 
                     Invoke-LogDatabaseQuery -connection $LogConnectionString `
                                             -isSQLServer `
                                             -query $query
-
-
                 } elseif ($ev.Id -eq 4907) {
-
-                    [String]$tableName = "DETAILS4907"
-                        
-                    if (!((Get-DatabaseAvailableTableNames).table_name).contains($tableName)){
-                        
-                        Write-Verbose "Table $tableName not found. It will be created."
-                        
+                    [String]$tableName = "DETAILS4907"                        
+                    if (!((Get-DatabaseAvailableTableNames).table_name).contains($tableName)){                        
+                        Write-Verbose "Table $tableName not found. It will be created."                        
                         Invoke-LogDatabaseQuery -connection $LogConnectionString `
                                                 -isSQLServer `
                                                 -query "CREATE TABLE $tableName (
@@ -482,8 +465,7 @@ function Set-LogEventInDatabase
                                                         ON [PRIMARY]                                                           
                                                          )"
                     }
-
-                     
+                                         
                     $sid = $splitMessage.get(3).split("").get($splitMessage.get(3).split("").count-1)
 
                     [String]$temp1 = $splitMessage.get(4).split("").get($splitMessage.get(4).split("").count-1)
@@ -506,7 +488,6 @@ function Set-LogEventInDatabase
                     [string]$originalSecurityDescriptor = $splitMessage.Get(19).Split("").get($splitMessage.Get(19).split("").Count-1)
                     [string]$newSecurityDescriptor = $splitMessage.Get(20).Split("").get($splitMessage.Get(20).split("").Count-1)
                     
-
                     $query = "INSERT INTO $tableName VALUES
                            ('$($ev.LogName)',
                             '$($ev.Id)',
@@ -531,16 +512,11 @@ function Set-LogEventInDatabase
 
                     Invoke-LogDatabaseQuery -connection $LogConnectionString `
                                             -isSQLServer `
-                                            -query $query
-                         
+                                            -query $query                         
                 } elseif ($ev.Id -eq 4672) {
-
-                    [String]$tableName = "DETAILS4672"
-                        
-                    if (!((Get-DatabaseAvailableTableNames).table_name).contains($tableName)){
-                        
-                        Write-Verbose "Table $tableName not found. It will be created."
-                        
+                    [String]$tableName = "DETAILS4672"                        
+                    if (!((Get-DatabaseAvailableTableNames).table_name).contains($tableName)){                        
+                        Write-Verbose "Table $tableName not found. It will be created."                        
                         Invoke-LogDatabaseQuery -connection $LogConnectionString `
                                                 -isSQLServer `
                                                 -query "CREATE TABLE $tableName (
@@ -558,16 +534,13 @@ function Set-LogEventInDatabase
                                                         ON [PRIMARY]                                                           
                                                          )"
                     }
-
-                     
+                                         
                     $sid = $splitMessage.get(3).split("").get($splitMessage.get(3).split("").count-1)
 
                     [String]$temp1 = $splitMessage.get(4).split("").get($splitMessage.get(4).split("").count-1)
                     [String]$temp2 = $splitMessage.get(5).split("").get($splitMessage.get(5).split("").Count-1)
                     [String]$sidCaption = $temp2 + "\" + $temp1
-
-                    
-                    
+                               
 
                     $query = "INSERT INTO $tableName VALUES
                            ('$($ev.LogName)',
@@ -586,16 +559,10 @@ function Set-LogEventInDatabase
                     Invoke-LogDatabaseQuery -connection $LogConnectionString `
                                             -isSQLServer `
                                             -query $query
-
-
                 } elseif ($ev.Id -eq 4634) {
-
-                    [String]$tableName = "DETAILS4634"
-                        
-                    if (!((Get-DatabaseAvailableTableNames).table_name).contains($tableName)){
-                        
-                        Write-Verbose "Table $tableName not found. It will be created."
-                        
+                    [String]$tableName = "DETAILS4634"                        
+                    if (!((Get-DatabaseAvailableTableNames).table_name).contains($tableName)){                        
+                        Write-Verbose "Table $tableName not found. It will be created."                        
                         Invoke-LogDatabaseQuery -connection $LogConnectionString `
                                                 -isSQLServer `
                                                 -query "CREATE TABLE $tableName (
@@ -614,8 +581,7 @@ function Set-LogEventInDatabase
                                                         ON [PRIMARY]                                                           
                                                          )"
                     }
-
-                     
+                                         
                     $sid = $splitMessage.get(3).split("").get($splitMessage.get(3).split("").count-1)
 
                     [String]$temp1 = $splitMessage.get(4).split("").get($splitMessage.get(4).split("").count-1)
@@ -625,7 +591,6 @@ function Set-LogEventInDatabase
                     [int]$logtype = $splitMessage.get(8).split("").get($splitMessage.get(8).split("").Count-1)
                     $logontype = Get-LogonType -LogonType $logtype
                     
-
                     $query = "INSERT INTO $tableName VALUES
                            ('$($ev.LogName)',
                             '$($ev.Id)',
@@ -644,16 +609,10 @@ function Set-LogEventInDatabase
                     Invoke-LogDatabaseQuery -connection $LogConnectionString `
                                             -isSQLServer `
                                             -query $query
-
-
                 } elseif ($ev.Id -eq 4648) {
-
-                    [String]$tableName = "DETAILS4648"
-                        
-                    if (!((Get-DatabaseAvailableTableNames).table_name).contains($tableName)){
-                        
+                    [String]$tableName = "DETAILS4648"                        
+                    if (!((Get-DatabaseAvailableTableNames).table_name).contains($tableName)){                        
                         Write-Verbose "Table $tableName not found. It will be created."
-                        
                         Invoke-LogDatabaseQuery -connection $LogConnectionString `
                                                 -isSQLServer `
                                                 -query "CREATE TABLE $tableName (
@@ -678,8 +637,7 @@ function Set-LogEventInDatabase
                                                         ON [PRIMARY]                                                           
                                                          )"
                     }
-
-                     
+                                         
                     $sid = $splitMessage.get(3).split("").get($splitMessage.get(3).split("").count-1)
 
                     [String]$temp1 = $splitMessage.get(4).split("").get($splitMessage.get(4).split("").count-1)
@@ -697,14 +655,11 @@ function Set-LogEventInDatabase
                     [String]$processId = $splitMessage.get(19).split("").get($splitMessage.get(19).split("").Count-1)
 
                     [String]$processName = $splitMessage.get(20).split("").get($splitMessage.get(20).split("").Count-1)
-
-
+                    
                     [String]$networkAddress = $splitMessage.get(23).split("").get($splitMessage.get(23).split("").Count-1)
 
                     [String]$networkPort = $splitMessage.get(24).split("").get($splitMessage.get(24).split("").Count-1)
-
-                   
-
+                    
                     $query = "INSERT INTO $tableName VALUES
                            ('$($ev.LogName)',
                             '$($ev.Id)',
@@ -729,16 +684,10 @@ function Set-LogEventInDatabase
                     Invoke-LogDatabaseQuery -connection $LogConnectionString `
                                             -isSQLServer `
                                             -query $query
-
-
                 }  elseif ($ev.Id -eq 4797) {
-
-                    [String]$tableName = "DETAILS4797"
-                        
-                    if (!((Get-DatabaseAvailableTableNames).table_name).contains($tableName)){
-                        
-                        Write-Verbose "Table $tableName not found. It will be created."
-                        
+                    [String]$tableName = "DETAILS4797"                        
+                    if (!((Get-DatabaseAvailableTableNames).table_name).contains($tableName)){                        
+                        Write-Verbose "Table $tableName not found. It will be created."                        
                         Invoke-LogDatabaseQuery -connection $LogConnectionString `
                                                 -isSQLServer `
                                                 -query "CREATE TABLE $tableName (
@@ -758,8 +707,7 @@ function Set-LogEventInDatabase
                                                         ON [PRIMARY]                                                           
                                                          )"
                     }
-
-                     
+                                         
                     $sid = $splitMessage.get(3).split("").get($splitMessage.get(3).split("").count-1)
 
                     $callerWorkstation = $splitMessage.get(9).split("").get($splitMessage.get(9).split("").count-1)
@@ -791,16 +739,10 @@ function Set-LogEventInDatabase
                     Invoke-LogDatabaseQuery -connection $LogConnectionString `
                                             -isSQLServer `
                                             -query $query
-
-
                 } elseif ($ev.Id -eq 4776) {
-
-                    [String]$tableName = "DETAILS4776"
-                        
-                    if (!((Get-DatabaseAvailableTableNames).table_name).contains($tableName)){
-                        
-                        Write-Verbose "Table $tableName not found. It will be created."
-                        
+                    [String]$tableName = "DETAILS4776"                        
+                    if (!((Get-DatabaseAvailableTableNames).table_name).contains($tableName)){                        
+                        Write-Verbose "Table $tableName not found. It will be created."                        
                         Invoke-LogDatabaseQuery -connection $LogConnectionString `
                                                 -isSQLServer `
                                                 -query "CREATE TABLE $tableName (
@@ -822,11 +764,8 @@ function Set-LogEventInDatabase
                     }
                    
                     [string]$authenticationPackage = $splitMessage.get(2).split("").get($splitMessage.get(2).split("").count-1)
-
                     [string]$logonAccount = $splitMessage.get(3).split("").get($splitMessage.get(3).split("").count-1)
-
-                    [string]$sourceWorkstation = $splitMessage.get(4).split("").get($splitMessage.get(4).split("").count-1)
-                    
+                    [string]$sourceWorkstation = $splitMessage.get(4).split("").get($splitMessage.get(4).split("").count-1)                    
                     [string]$errorCode = $splitMessage.get(5).split("").get($splitMessage.get(5).split("").count-1)
                     
                     $query = "INSERT INTO $tableName VALUES
@@ -848,16 +787,10 @@ function Set-LogEventInDatabase
                     Invoke-LogDatabaseQuery -connection $LogConnectionString `
                                             -isSQLServer `
                                             -query $query
-
-
                 }  elseif ($ev.Id -eq 4735) {
-
-                    [String]$tableName = "DETAILS4735"
-                        
-                    if (!((Get-DatabaseAvailableTableNames).table_name).contains($tableName)){
-                        
-                        Write-Verbose "Table $tableName not found. It will be created."
-                        
+                    [String]$tableName = "DETAILS4735"                        
+                    if (!((Get-DatabaseAvailableTableNames).table_name).contains($tableName)){                        
+                        Write-Verbose "Table $tableName not found. It will be created."                        
                         Invoke-LogDatabaseQuery -connection $LogConnectionString `
                                                 -isSQLServer `
                                                 -query "CREATE TABLE $tableName (
@@ -884,9 +817,8 @@ function Set-LogEventInDatabase
 
                     [String]$temp1 = $splitMessage.get(4).split("").get($splitMessage.get(4).split("").count-1)
                     [String]$temp2 = $splitMessage.get(5).split("").get($splitMessage.get(5).split("").Count-1)
-                    [String]$sidCaption = $temp2 + "\" + $temp1
-
-                    
+                    [String]$sidCaption = $temp2 + "\" + $temp1  
+                                      
                     [string]$groupSid = $splitMessage.get(9).split("").get($splitMessage.get(9).split("").count-1)
 
                     [String]$tempGr1 = $splitMessage.get(10).split("").get($splitMessage.get(10).split("").count-1)
@@ -917,8 +849,6 @@ function Set-LogEventInDatabase
                     Invoke-LogDatabaseQuery -connection $LogConnectionString `
                                             -isSQLServer `
                                             -query $query
-
-
                 } 
             }
         }       
@@ -928,10 +858,10 @@ function Set-LogEventInDatabase
 
 <#
 .NAME
-   
+   Set-TableAutoIncrementValue
 
 .SYNOPSIS
-   
+   Sets the auto increment value of a table to be zero.
 
 .SYNTAX
 
@@ -963,33 +893,24 @@ function Set-LogEventInDatabase
 #>
 function Set-TableAutoIncrementValue
 {
-    [CmdletBinding()]
-    [OutputType([int])]
+    [CmdletBinding()]    
     Param
     (
-        # Param1 help description
         [Parameter(Mandatory=$true,
                    ValueFromPipelineByPropertyName=$true,
                    Position=0)]
         [String[]]$Table,
-        [int]$Value=0
-
-      
+        [int]$Value=0     
     )
-
     Process
     {
         foreach ($ta in $Table){
-
-                $query = "DBCC CHECKIDENT ('$ta',reseed,$Value)"              
-                
+                $query = "DBCC CHECKIDENT ('$ta',reseed,$Value)"               
                 Write-Verbose "Query from 'Set-TableAutoIncrementValue cmdlet' will be: '$query'"
-
                 Invoke-LogDatabaseQuery -connection $LogConnectionString `
                                         -isSQLServer `
                                         -query $query
-        }
-        
+        }        
     }
 }
 
