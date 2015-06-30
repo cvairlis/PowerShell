@@ -2,7 +2,7 @@
 $LogConnectionString = 
         "server=localhost\SQLEXPRESS;database=LogDB;trusted_connection=True"
 
-
+# Imports LogDatabase Module in order to be able to use Get-LogDatabaseData and Invoke-LogDatabaseQuery cmdlets.
 Import-Module LogDatabase
 
 
@@ -106,7 +106,7 @@ function Get-DatabaseAvailableTableNames
                             -isSQLServer `
                             -query "SELECT TABLE_NAME
                                     FROM INFORMATION_SCHEMA.TABLES
-                                    WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_CATALOG='LogDB'"                                     
+                                    WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_CATALOG='LogDB'"                       
     }
 }
 
