@@ -139,7 +139,9 @@ function Get-DatabaseAvailableTableNames
     Accept wildcard characters?  false
 
 .INPUTS
-   [System.Diagnostics.Eventing.Reader.EventLogRecord[]]
+   [System.Diagnostics.Eventing.Reader.EventLogRecord]
+
+   You can pipe EventLogRecord objects as input to this cmdlet.
 
 .OUTPUTS
    None
@@ -883,7 +885,7 @@ function Set-LogEventInDatabase
     Accept wildcard characters?  false
 
 .INPUTS
-   [String[]]
+   None
 
 .OUTPUTS
    None
@@ -954,7 +956,7 @@ function Set-TableAutoIncrementValue
     Accept wildcard characters?  false
 
 .INPUTS
-   [String[]]
+   None
 
 .OUTPUTS
    None
@@ -1027,12 +1029,15 @@ function Clear-TableContentsFromDatabase
     Accept wildcard characters?  false
 
 .INPUTS
-   [Int32]
+   None
+
+   You cannot pipe input to this cmdlet.
 
 .OUTPUTS
-   [string]
+   [System.String]
    
 .NOTES
+   None
 
 .EXAMPLE
 
@@ -1096,10 +1101,12 @@ function Get-LogonType
     Accept wildcard characters?  false
 
 .INPUTS
-   [string]
+   None
+   
+   You cannot pipe input to this cmdlet.
 
 .OUTPUTS
-   [string]
+   [System.String]
 
 .NOTES
    None
@@ -1162,10 +1169,12 @@ function Get-ImpersonationLevelExplanation
     Accept wildcard characters?  false
 
 .INPUTS
-   [string]
+   None
+
+   You cannot pipe input to this cmdlet.
 
 .OUTPUTS
-   [string]
+   [System.String]
 
 .NOTES
    None
@@ -1211,22 +1220,44 @@ function Get-StatusExplanation
 
 <#
 .NAME
-   
+   Get-DatesUntilNow
 
 .SYNOPSIS
-   
+   Gets an array of datetime object from a specified date until now.
 
 .SYNTAX
-
+   Get-DatesUntilNow [-DateTime <DateTime>] [-Reverse <switch>]
    
 .DESCRIPTION
-   
-   
+   This cmdlet is been created in order to work with Get-TimeRangesForNames and Get-TimeRangesForValues.
+      
 .PARAMETERS
+   -DateTime <DateTime>
+    Gives to the cmdlet a datetime value.
+
+    Required?                    true
+    Position?                    1
+    Default value
+    Accept pipeline input?       true
+    Accept wildcard characters?  false
+
+   -Reverse <switch>
+    Determines if the array will be reversed or not.
+
+    Required?                    true
+    Position?                    1
+    Default value
+    Accept pipeline input?       true
+    Accept wildcard characters?  false
 
 .INPUTS
+   None
+
+   You cannot pipe input to this cmdlet.
 
 .OUTPUTS
+   [System.Collections.ArrayList] 
+    with DateTime objects
 
 .NOTES
 
@@ -1234,30 +1265,84 @@ function Get-StatusExplanation
 
    -------------------------- EXAMPLE 1 --------------------------
 
-   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
+   PS C:\> Get-DatesUntilNow -DateTime (Get-Date).AddDays(-20)
+      
+   This example will output the following:
+
+   Tuesday, June 30, 2015 4:50:22 PM
+   Monday, June 29, 2015 4:50:22 PM
+   Sunday, June 28, 2015 4:50:22 PM
+   Saturday, June 27, 2015 4:50:22 PM
+   Friday, June 26, 2015 4:50:22 PM
+   Thursday, June 25, 2015 4:50:22 PM
+   Wednesday, June 24, 2015 4:50:22 PM
+   Tuesday, June 23, 2015 4:50:22 PM
+   Monday, June 22, 2015 4:50:22 PM
+   Sunday, June 21, 2015 4:50:22 PM
+   Saturday, June 20, 2015 4:50:22 PM
+   Friday, June 19, 2015 4:50:22 PM
+   Thursday, June 18, 2015 4:50:22 PM
+   Wednesday, June 17, 2015 4:50:22 PM
+   Tuesday, June 16, 2015 4:50:22 PM
+   Monday, June 15, 2015 4:50:22 PM
+   Sunday, June 14, 2015 4:50:22 PM
+   Saturday, June 13, 2015 4:50:22 PM
+   Friday, June 12, 2015 4:50:22 PM
+   Thursday, June 11, 2015 4:50:22 PM
+   Wednesday, June 10, 2015 4:50:22 PM
 
 .EXAMPLE
 
    -------------------------- EXAMPLE 2 --------------------------
 
-   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
+   PS C:\> [System.DateTime]$date = "06/01/2015"
+   PS C:\> Get-DatesUntilNow -DateTime $date -Reverse
 
+   This example will output the following:
+
+   Monday, June 1, 2015 4:48:43 PM
+   Tuesday, June 2, 2015 4:48:43 PM
+   Wednesday, June 3, 2015 4:48:43 PM
+   Thursday, June 4, 2015 4:48:43 PM
+   Friday, June 5, 2015 4:48:43 PM
+   Saturday, June 6, 2015 4:48:43 PM
+   Sunday, June 7, 2015 4:48:43 PM
+   Monday, June 8, 2015 4:48:43 PM
+   Tuesday, June 9, 2015 4:48:43 PM
+   Wednesday, June 10, 2015 4:48:43 PM
+   Thursday, June 11, 2015 4:48:43 PM
+   Friday, June 12, 2015 4:48:43 PM
+   Saturday, June 13, 2015 4:48:43 PM
+   Sunday, June 14, 2015 4:48:43 PM
+   Monday, June 15, 2015 4:48:43 PM
+   Tuesday, June 16, 2015 4:48:43 PM
+   Wednesday, June 17, 2015 4:48:43 PM
+   Thursday, June 18, 2015 4:48:43 PM
+   Friday, June 19, 2015 4:48:43 PM
+   Saturday, June 20, 2015 4:48:43 PM
+   Sunday, June 21, 2015 4:48:43 PM
+   Monday, June 22, 2015 4:48:43 PM
+   Tuesday, June 23, 2015 4:48:43 PM
+   Wednesday, June 24, 2015 4:48:43 PM
+   Thursday, June 25, 2015 4:48:43 PM
+   Friday, June 26, 2015 4:48:43 PM
+   Saturday, June 27, 2015 4:48:43 PM
+   Sunday, June 28, 2015 4:48:43 PM
+   Monday, June 29, 2015 4:48:43 PM
+   Tuesday, June 30, 2015 4:48:43  
 
 #>
 function Get-DatesUntilNow
 {
     [CmdletBinding()]
-    #[OutputType([int])]
     Param
     (
-        # Param1 help description
         [Parameter(Mandatory=$true,
                    ValueFromPipelineByPropertyName=$true,
                    Position=0)]
         [System.DateTime]$DateTime,
         [switch]$Reverse
     )
-
     Begin
     {
         $DatesArray = New-Object System.Collections.ArrayList
@@ -1265,7 +1350,6 @@ function Get-DatesUntilNow
     }
     Process
     {   
-
         $timeSpan = (New-TimeSpan -Start (Get-Date) -End $DateTime).Days*-1
 
         for ($in =0; $in -le $timeSpan; $in++ ) {
@@ -1276,8 +1360,7 @@ function Get-DatesUntilNow
         
         if ($Reverse){
             $DatesArray.Reverse()
-        } 
-        
+        }         
     }
     End
     {        
@@ -1288,37 +1371,166 @@ function Get-DatesUntilNow
 
 <#
 .NAME
-   
+   Get-TimeRangesForNames
 
 .SYNOPSIS
-   
+   Gets an array of time ranges until the current date.
 
 .SYNTAX
-
+   Get-TimeRangesForNames [-DateTime <DateTime>]
    
 .DESCRIPTION
-   
-   
+   This cmdlet is used by the Get-HashTableForTimeLineChart cmdlet.
+   Charts in Windows Forms can have as data source a hash table.
+   Every record on a hash table basically consists of name and value.
+   In order to make time line charts we had to specify names and values.
+   With this way Get-TimeRangesForNames will provide the names that our hash table will contain.
+
+   In addition, Get-TimeRangesForNames works as follows:
+    - If we want to get time ranges from a date that abstains from the current date less than 7 days:
+      time ranges will be hourly separated (see example 1)
+    - If we want to get time ranges from a date that abstains from the current date more than 7 days but less than 30 days:
+      time ranges will be daily separated (see example 2)
+    - If we want to get time ranges from a date that abstains from the current date more than 30 days:
+      time ranges will be weekly separated (see example 3)
+         
 .PARAMETERS
+   -DateTime <String>
+    Gives to the cmdlet a string value.
+
+    Required?                    true
+    Position?                    1
+    Default value
+    Accept pipeline input?       true
+    Accept wildcard characters?  false
+
 
 .INPUTS
+   None
 
 .OUTPUTS
-
+   [System.Collections.ArrayList] 
+    with string value objects
 .NOTES
+   None
 
 .EXAMPLE
 
    -------------------------- EXAMPLE 1 --------------------------
 
-   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
+   PS C:\> [System.DateTime]$date = "06/29/2015"
+   PS C:\> Get-TimeRangesForNames -DateTime $date
+
+   This example will output the following:
+
+   29_Jun_00-01
+   29_Jun_01-02
+   29_Jun_02-03
+   29_Jun_03-04
+   29_Jun_04-05
+   29_Jun_05-06
+   29_Jun_06-07
+   29_Jun_07-08
+   29_Jun_08-09
+   29_Jun_09-10
+   29_Jun_10-11
+   29_Jun_11-12
+   29_Jun_12-13
+   29_Jun_13-14
+   29_Jun_14-15
+   29_Jun_15-16
+   29_Jun_16-17
+   29_Jun_17-18
+   29_Jun_18-19
+   29_Jun_19-20
+   29_Jun_20-21
+   29_Jun_21-22
+   29_Jun_22-23
+   29_Jun_23-00
+   30_Jun_00-01
+   30_Jun_01-02
+   30_Jun_02-03
+   30_Jun_03-04
+   30_Jun_04-05
+   30_Jun_05-06
+   30_Jun_06-07
+   30_Jun_07-08
+   30_Jun_08-09
+   30_Jun_09-10
+   30_Jun_10-11
+   30_Jun_11-12
+   30_Jun_12-13
+   30_Jun_13-14
+   30_Jun_14-15
+   30_Jun_15-16
+   30_Jun_16-17
+   30_Jun_17-18
+   30_Jun_18-19
+   30_Jun_19-20
+   30_Jun_20-21
+   30_Jun_21-22
+   30_Jun_22-23
+   30_Jun_23-00
 
 .EXAMPLE
 
    -------------------------- EXAMPLE 2 --------------------------
 
-   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
+   PS C:\> [System.DateTime]$date = "06/01/2015"
+   PS C:\> Get-TimeRangesForNames -DateTime $date
+   
+   This example will output the following:
 
+   01_Jun
+   02_Jun
+   03_Jun
+   04_Jun
+   05_Jun
+   06_Jun
+   07_Jun
+   08_Jun
+   09_Jun
+   10_Jun
+   11_Jun
+   12_Jun
+   13_Jun
+   14_Jun
+   15_Jun
+   16_Jun
+   17_Jun
+   18_Jun
+   19_Jun
+   20_Jun
+   21_Jun
+   22_Jun
+   23_Jun
+   24_Jun
+   25_Jun
+   26_Jun
+   27_Jun
+   28_Jun
+   29_Jun
+   30_Jun
+   
+.EXAMPLE
+
+   -------------------------- EXAMPLE 3 --------------------------
+
+   PS C:\> [System.DateTime]$date = "05/01/2015"
+   PS C:\> Get-TimeRangesForNames -DateTime $date
+
+   This example will output the following:
+
+   01_May-02_May
+   03_May-09_May
+   10_May-16_May
+   17_May-23_May
+   24_May-30_May
+   31_May-06_Jun
+   07_Jun-13_Jun
+   14_Jun-20_Jun
+   21_Jun-27_Jun
+   28_Jun-04_Jul
 
 #>
 function Get-TimeRangesForNames
@@ -1327,7 +1539,6 @@ function Get-TimeRangesForNames
     [OutputType([int])]
     Param
     (
-        # Param1 help description
         [Parameter(Mandatory=$true,
                    ValueFromPipelineByPropertyName=$true,
                    Position=0)]
@@ -1337,18 +1548,17 @@ function Get-TimeRangesForNames
      Begin
     {
         $namesArray = New-Object System.Collections.ArrayList
-        #metatrepw to string pou irhte se antikeimeno DateTime
+        # converts the string value came from the parameter to a datetime object
         $DateToWorkWith = [System.DateTime]$DateTime
-        # dhmiourgontas ena antikeimeno TimeSpan mporw na vrw poses meres apexei h hmeromhnia pou irthe apo th current date
+        # by creating a timespan object we can find how many days the datetime that came as input abstains from the current date
         $timeSpan = New-TimeSpan -Start $DateToWorkWith -End (get-date)
     }
     Process
     {
-        # an h hmeromhnia pou irthe apo th shmerinh apexei ligoteres h ises me 7 meres (arithmos 7)
-        # tote ftiakse fiasthmata ths mias wras
+        # if the received date abstains from the current date less that 7 days (number 7)
+        # hour time ranges will be constructed
         if ($timeSpan.Days -lt 7){
-            #gia kathe mia apo tis meres ftiakse diasthmata mias wras
-            # etoima gia na xrhsimopoihthoun ws erwthma sthn sql
+            # for each day makes ranges of hour
             for ($i = 0 ; ($i -le $timeSpan.Days); $i++){
                 for ($j = 0; $j -le 23; $j++){
                     switch ($j){
@@ -1358,10 +1568,10 @@ function Get-TimeRangesForNames
                     3{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_03-04";break}
                     4{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_04-05";break}
                     5{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_05-06";break}
-                    6{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_06-08";break}
-                    7{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_07-09";break}
-                    8{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_08-10";break}
-                    9{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_09-11";break}
+                    6{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_06-07";break}
+                    7{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_07-08";break}
+                    8{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_08-09";break}
+                    9{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_09-10";break}
                     10{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_10-11";break}
                     11{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_11-12";break}
                     12{ $temp = ($DateToWorkWith.AddDays($i).ToString("dd_MMM"))+"_12-13";break}
@@ -1381,17 +1591,16 @@ function Get-TimeRangesForNames
                 }
             }
             
-        # an h hmeromhnia pou irthe apexei apo th shmerinh perissores apo 7 meres (arithmos 7) kai ligoteres apo 30
-        # tote ftiakse fiasthmata ths mias meras
+        # if the received date abstains from the current date more that 7 but less than 30 days
+        # day time ranges will be constructed
         } elseif ($timeSpan.Days -gt 7 -and $timeSpan.Days -le 30){
-            # gia kathe mera apo th prwth mera pou irthe ftiaxnei ena str tou typou px 12_Jun mexri na ftasei th shmerinh hmeromhnia
             for ($i=0; $DateToWorkWith.AddDays($i).date -le (Get-Date).date; $i++){
                 $temp = $DateToWorkWith.AddDays($i).ToString("dd_MMM")  
                 $addition = $namesArray.Add($temp)
             }
             
-        # an h hmeromhnia pou irthe apexei apo th shmerinh perissores apo 30
-        # tote ftiakse fiasthmata ths mias vdomadas
+        # if the received date abstains from the current date more that 30 days
+        # week time ranges will be constructed
         } elseif ($timeSpan.Days -gt 30){                    
             if ($DateToWorkWith.DayOfWeek.value__ -ne 0){
                 switch ($DateToWorkWith.DayOfWeek.value__){
@@ -1440,6 +1649,7 @@ function Get-TimeRangesForNames
     }
     End
     {       
+        # finally it outputs a System.Collections.ArrayList
         Write-Output $namesArray
     }
     
@@ -1448,60 +1658,167 @@ function Get-TimeRangesForNames
 
 <#
 .NAME
-   
+   Get-TimeRangesForValues
 
 .SYNOPSIS
-   
+   Gets an array of time ranges until the current date to be used as SQL Queries.
 
 .SYNTAX
-
+   Get-TimeRangesForValues [-DateTime <DateTime>]
    
 .DESCRIPTION
-   
-   
+   This cmdlet is used by the Get-HashTableForTimeLineChart cmdlet.
+   Charts in Windows Forms can have as data source a hash table.
+   Every record on a hash table basically consists of name and value.
+   In order to make time line charts we had to specify names and values.
+   With this way Get-TimeRangesForValues will provide the values that our hash table will contain.
+
+   In addition, Get-TimeRangesForValues works as follows:
+    - If we want to get time ranges from a date that abstains from the current date less than 7 days:
+      time ranges will be hourly separated (see example 1)
+    - If we want to get time ranges from a date that abstains from the current date more than 7 days but less than 30 days:
+      time ranges will be daily separated (see example 2)
+    - If we want to get time ranges from a date that abstains from the current date more than 30 days:
+      time ranges will be weekly separated (see example 3)
+         
 .PARAMETERS
+   -DateTime <String>
+    Gives to the cmdlet a string value.
+
+    Required?                    true
+    Position?                    1
+    Default value
+    Accept pipeline input?       true
+    Accept wildcard characters?  false
+
 
 .INPUTS
+   None
 
 .OUTPUTS
-
+   [System.Collections.ArrayList] 
+    with string value objects
 .NOTES
+   None
 
 .EXAMPLE
 
    -------------------------- EXAMPLE 1 --------------------------
 
-   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
+   PS C:\> [System.DateTime]$date = "06/29/2015"
+   PS C:\> Get-TimeRangesForValues -DateTime $date
+
+   This example will output the following:
+
+   '06/29/2015 00:00:00' AND '06/29/2015 00:59:59'
+   '06/29/2015 01:00:00' AND '06/29/2015 01:59:59'
+   '06/29/2015 02:00:00' AND '06/29/2015 02:59:59'
+   '06/29/2015 03:00:00' AND '06/29/2015 03:59:59'
+   '06/29/2015 04:00:00' AND '06/29/2015 04:59:59'
+   '06/29/2015 05:00:00' AND '06/29/2015 05:59:59'
+   '06/29/2015 06:00:00' AND '06/29/2015 06:59:59'
+   '06/29/2015 07:00:00' AND '06/29/2015 07:59:59'
+   '06/29/2015 08:00:00' AND '06/29/2015 08:59:59'
+   '06/29/2015 09:00:00' AND '06/29/2015 09:59:59'
+   '06/29/2015 10:00:00' AND '06/29/2015 10:59:59'
+   '06/29/2015 11:00:00' AND '06/29/2015 11:59:59'
+   '06/29/2015 12:00:00' AND '06/29/2015 12:59:59'
+   '06/29/2015 13:00:00' AND '06/29/2015 13:59:59'
+   '06/29/2015 14:00:00' AND '06/29/2015 14:59:59'
+   '06/29/2015 15:00:00' AND '06/29/2015 15:59:59'
+   '06/29/2015 16:00:00' AND '06/29/2015 16:59:59'
+   '06/29/2015 17:00:00' AND '06/29/2015 17:59:59'
+   '06/29/2015 18:00:00' AND '06/29/2015 18:59:59'
+   '06/29/2015 19:00:00' AND '06/29/2015 19:59:59'
+   '06/29/2015 20:00:00' AND '06/29/2015 20:59:59'
+   '06/29/2015 21:00:00' AND '06/29/2015 21:59:59'
+   '06/29/2015 22:00:00' AND '06/29/2015 22:59:59'
+   '06/29/2015 23:00:00' AND '06/29/2015 23:59:59'
+   '06/30/2015 00:00:00' AND '06/30/2015 00:59:59'
+   '06/30/2015 01:00:00' AND '06/30/2015 01:59:59'
+   '06/30/2015 02:00:00' AND '06/30/2015 02:59:59'
+   '06/30/2015 03:00:00' AND '06/30/2015 03:59:59'
+   '06/30/2015 04:00:00' AND '06/30/2015 04:59:59'
+   '06/30/2015 05:00:00' AND '06/30/2015 05:59:59'
+   '06/30/2015 06:00:00' AND '06/30/2015 06:59:59'
+   '06/30/2015 07:00:00' AND '06/30/2015 07:59:59'
+   '06/30/2015 08:00:00' AND '06/30/2015 08:59:59'
+   '06/30/2015 09:00:00' AND '06/30/2015 09:59:59'
+   '06/30/2015 10:00:00' AND '06/30/2015 10:59:59'
+   '06/30/2015 11:00:00' AND '06/30/2015 11:59:59'
+   '06/30/2015 12:00:00' AND '06/30/2015 12:59:59'
+   '06/30/2015 13:00:00' AND '06/30/2015 13:59:59'
+   '06/30/2015 14:00:00' AND '06/30/2015 14:59:59'
+   '06/30/2015 15:00:00' AND '06/30/2015 15:59:59'
+   '06/30/2015 16:00:00' AND '06/30/2015 16:59:59'
+   '06/30/2015 17:00:00' AND '06/30/2015 17:59:59'
+   '06/30/2015 18:00:00' AND '06/30/2015 18:59:59'
+   '06/30/2015 19:00:00' AND '06/30/2015 19:59:59'
+   '06/30/2015 20:00:00' AND '06/30/2015 20:59:59'
+   '06/30/2015 21:00:00' AND '06/30/2015 21:59:59'
+   '06/30/2015 22:00:00' AND '06/30/2015 22:59:59'
+   '06/30/2015 23:00:00' AND '06/30/2015 23:59:59'
 
 .EXAMPLE
 
    -------------------------- EXAMPLE 2 --------------------------
 
-   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
+   PS C:\> [System.DateTime]$date = "06/01/2015"
+   PS C:\> Get-TimeRangesForValues -DateTime $date
+   
+   This example will output the following:
 
+   '06/01/2015 00:00:00' AND '06/01/2015 23:59:59'
+   '06/02/2015 00:00:00' AND '06/02/2015 23:59:59'
+   '06/03/2015 00:00:00' AND '06/03/2015 23:59:59'
+   '06/04/2015 00:00:00' AND '06/04/2015 23:59:59'
+   '06/05/2015 00:00:00' AND '06/05/2015 23:59:59'
+   '06/06/2015 00:00:00' AND '06/06/2015 23:59:59'
+   '06/07/2015 00:00:00' AND '06/07/2015 23:59:59'
+   '06/08/2015 00:00:00' AND '06/08/2015 23:59:59'
+   '06/09/2015 00:00:00' AND '06/09/2015 23:59:59'
+   '06/10/2015 00:00:00' AND '06/10/2015 23:59:59'
+   '06/11/2015 00:00:00' AND '06/11/2015 23:59:59'
+   '06/12/2015 00:00:00' AND '06/12/2015 23:59:59'
+   '06/13/2015 00:00:00' AND '06/13/2015 23:59:59'
+   '06/14/2015 00:00:00' AND '06/14/2015 23:59:59'
+   '06/15/2015 00:00:00' AND '06/15/2015 23:59:59'
+   '06/16/2015 00:00:00' AND '06/16/2015 23:59:59'
+   '06/17/2015 00:00:00' AND '06/17/2015 23:59:59'
+   '06/18/2015 00:00:00' AND '06/18/2015 23:59:59'
+   '06/19/2015 00:00:00' AND '06/19/2015 23:59:59'
+   '06/20/2015 00:00:00' AND '06/20/2015 23:59:59'
+   '06/21/2015 00:00:00' AND '06/21/2015 23:59:59'
+   '06/22/2015 00:00:00' AND '06/22/2015 23:59:59'
+   '06/23/2015 00:00:00' AND '06/23/2015 23:59:59'
+   '06/24/2015 00:00:00' AND '06/24/2015 23:59:59'
+   '06/25/2015 00:00:00' AND '06/25/2015 23:59:59'
+   '06/26/2015 00:00:00' AND '06/26/2015 23:59:59'
+   '06/27/2015 00:00:00' AND '06/27/2015 23:59:59'
+   '06/28/2015 00:00:00' AND '06/28/2015 23:59:59'
+   '06/29/2015 00:00:00' AND '06/29/2015 23:59:59'
+   '06/30/2015 00:00:00' AND '06/30/2015 23:59:59'
+   
+.EXAMPLE
 
+   -------------------------- EXAMPLE 3 --------------------------
 
-   PS C:\Windows\system32> Get-TimeRangesForValues -DateTime "02/05/2015 00:00:00"
-    '02/05/2015 00:00:00' AND '02/07/2015 23:59:59'
-    '02/08/2015 00:00:00' AND '02/14/2015 23:59:59'
-    '02/15/2015 00:00:00' AND '02/21/2015 23:59:59'
-    '02/22/2015 00:00:00' AND '02/28/2015 23:59:59'
-    '03/01/2015 00:00:00' AND '03/07/2015 23:59:59'
-    '03/08/2015 00:00:00' AND '03/14/2015 23:59:59'
-    '03/15/2015 00:00:00' AND '03/21/2015 23:59:59'
-    '03/22/2015 00:00:00' AND '03/28/2015 23:59:59'
-    '03/29/2015 00:00:00' AND '04/04/2015 23:59:59'
-    '04/05/2015 00:00:00' AND '04/11/2015 23:59:59'
-    '04/12/2015 00:00:00' AND '04/18/2015 23:59:59'
-    '04/19/2015 00:00:00' AND '04/25/2015 23:59:59'
-    '04/26/2015 00:00:00' AND '05/02/2015 23:59:59'
-    '05/03/2015 00:00:00' AND '05/09/2015 23:59:59'
-    '05/10/2015 00:00:00' AND '05/16/2015 23:59:59'
-    '05/17/2015 00:00:00' AND '05/23/2015 23:59:59'
-    '05/24/2015 00:00:00' AND '05/30/2015 23:59:59'
-    '05/31/2015 00:00:00' AND '06/06/2015 23:59:59'
-    '06/07/2015 00:00:00' AND '06/13/2015 23:59:59'
-    '06/14/2015 00:00:00' AND '06/20/2015 23:59:59'
+   PS C:\> [System.DateTime]$date = "05/01/2015"
+   PS C:\> Get-TimeRangesForValues -DateTime $date
+
+   This example will output the following:
+
+   '05/01/2015 00:00:00' AND '05/02/2015 23:59:59'
+   '05/03/2015 00:00:00' AND '05/09/2015 23:59:59'
+   '05/10/2015 00:00:00' AND '05/16/2015 23:59:59'
+   '05/17/2015 00:00:00' AND '05/23/2015 23:59:59'
+   '05/24/2015 00:00:00' AND '05/30/2015 23:59:59'
+   '05/31/2015 00:00:00' AND '06/06/2015 23:59:59'
+   '06/07/2015 00:00:00' AND '06/13/2015 23:59:59'
+   '06/14/2015 00:00:00' AND '06/20/2015 23:59:59'
+   '06/21/2015 00:00:00' AND '06/27/2015 23:59:59'
+   '06/28/2015 00:00:00' AND '07/04/2015 23:59:59'
+
 #>
 function Get-TimeRangesForValues
 {
@@ -1509,7 +1826,6 @@ function Get-TimeRangesForValues
     [OutputType([int])]
     Param
     (
-        # Param1 help description
         [Parameter(Mandatory=$true,
                    ValueFromPipelineByPropertyName=$true,
                    Position=0)]
@@ -1519,20 +1835,18 @@ function Get-TimeRangesForValues
     Begin
     {
         $datesArray = New-Object System.Collections.ArrayList
-        #metatrepw to string pou irhte se antikeimeno DateTime
+        # converts the string value came from the parameter to a datetime object
         $DateToWorkWith = [System.DateTime]$DateTime
-
-        # dhmiourgontas ena antikeimeno TimeSpan mporw na vrw poses meres apexei h hmeromhnia pou irthe apo th current date
+        # by creating a timespan object we can find how many days the datetime that came as input abstains from the current date
         $timeSpan = New-TimeSpan -Start $DateToWorkWith -End (get-date)
     }
     Process
     {
-        # an h hmeromhnia pou irthe apo th shmerinh apexei ligoteres h ises me 7 meres (arithmos 7)
-        # tote ftiakse fiasthmata ths mias wras
+        # if the received date abstains from the current date less that 7 days (number 7)
+        # hour time ranges will be constructed
         if ($timeSpan.Days -lt 7){
-
-            #gia kathe mia apo tis meres ftiakse diasthmata mias wras
-            # etoima gia na xrhsimopoihthoun ws erwthma sthn sql
+            # for each day makes ranges of hour
+            # ready to be used as sql queries
             for ($i = 0 ; ($i -le $timeSpan.Days); $i++){
                 for ($j = 0; $j -le 23; $j++){
                     switch ($j){
@@ -1564,22 +1878,18 @@ function Get-TimeRangesForValues
                     $addition = $datesArray.Add($temp)
                 }
             }
-
-
-
-        # an h hmeromhnia pou irthe apexei apo th shmerinh perissores apo 7 meres (arithmos 7) kai ligoteres apo 30
-        # tote ftiakse fiasthmata ths mias meras
+        # if the received date abstains from the current date more that 7 but less than 30 days
+        # day time ranges will be constructed
+        # ready to be used as sql queries
         } elseif ($timeSpan.Days -gt 7 -and $timeSpan.Days -le 30){
 
              for ($i=0; $DateToWorkWith.AddDays($i).date -le (Get-Date).date; $i++){
                 $temp = "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 00:00:00")+"'"+" AND "+ "'"+$DateToWorkWith.AddDays($i).ToString("MM/dd/yyyy 23:59:59")+"'"
                 $addition = $datesArray.Add($temp)
-            }
-
-
-
-        # an h hmeromhnia pou irthe apexei apo th shmerinh perissores apo 30
-        # tote ftiakse fiasthmata ths mias vdomadas
+            } 
+        # if the received date abstains from the current date more that 30 days
+        # week time ranges will be constructed
+        # ready to be used as sql queries
         } elseif ($timeSpan.Days -gt 30){
             if ($DateToWorkWith.DayOfWeek.value__ -ne 0){
                 switch ($DateToWorkWith.DayOfWeek.value__){
@@ -1612,22 +1922,20 @@ function Get-TimeRangesForValues
                 $addition = $datesArray.Add($temp)
             } else {
                 $next = $DateToWorkWith
-            }
-            
+            }            
             [System.Collections.ArrayList]$dates = (Get-DatesUntilNow -DateTime $next)
-            $dates.reverse()
-            
+            $dates.reverse()            
             foreach ($date in $dates){
                 if ($date.DayOfWeek.value__ -eq 0){
                     $temp = "'"+$date.ToString("MM/dd/yyyy 00:00:00")+"'"+" AND "+ "'"+$date.AddDays(6).ToString("MM/dd/yyyy 23:59:59")+"'"
                     $addition = $datesArray.Add($temp)
                 }      
-            }
-            # edw epese poly texnh filaraki :P
+            }            
         }        
     }
     End
-    {        
+    {      
+        # finally it outputs a System.Collections.ArrayList  
         Write-Output $datesArray
     }
 }
@@ -1644,22 +1952,42 @@ function Get-TimeRangesForValues
 
 <#
 .NAME
-   
+   Get-TableRowNumber
 
 .SYNOPSIS
-   
+   Get a number that represents rows of a table in database.
 
 .SYNTAX
-
+   Get-TableRowNumber [-Table <String[]>] [-After <String>]
    
 .DESCRIPTION
-   
+   This cmdlet is used by the first window of the "LogVisualization.ps1" in order to inform the user 
+   about how many event record exist in the database.    
    
 .PARAMETERS
+   -Table <String[]>
+    Gives to the cmdlet a string value.
+
+    Required?                    true
+    Position?                    1
+    Default value
+    Accept pipeline input?       true
+    Accept wildcard characters?  false
+
+   -After <String>
+    Gives to the cmdlet a string value.
+
+    Required?                    false
+    Position?                    1
+    Default value
+    Accept pipeline input?       true
+    Accept wildcard characters?  false
 
 .INPUTS
+   None
 
 .OUTPUTS
+   An integer value.
 
 .NOTES
 
@@ -1667,14 +1995,15 @@ function Get-TimeRangesForValues
 
    -------------------------- EXAMPLE 1 --------------------------
 
-   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
+   PS C:\> Get-TableRowNumber -Table Events -After "05/01/2015"
+   45049
 
 .EXAMPLE
 
    -------------------------- EXAMPLE 2 --------------------------
 
-   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
-
+   PS C:\> Get-TableRowNumber -Table Events -After "06/26/2015"
+   4641
 
 #>
 function Get-TableRowNumber
@@ -1683,47 +2012,29 @@ function Get-TableRowNumber
     [OutputType([int])]
     Param
     (
-        # Param1 help description
         [Parameter(Mandatory=$true,
                    ValueFromPipelineByPropertyName=$true,
                    Position=0)]
         [String[]]$Table,
-        [String]$After,
-        [string]$LogName
+        [String]$After
     )
     Process
     {
         foreach ($ta in $Table){
-
-            #$After = $After.Substring(
-
-            if ($After -eq 0){
-                  
+            if ($After -eq 0){                  
                 [int]$number = (Get-LogDatabaseData -connectionString $LogConnectionString `
                                  -isSQLServer `
                                  -query "SELECT COUNT(*) from $ta").item(0)
 
                 Write-Output $number
-
-                if ($LogName -ne ""){
-
-
-
-                }
-
             } else {
-
                 [int]$number = (Get-LogDatabaseData -connectionString $LogConnectionString `
                                  -isSQLServer `
                                  -query "SELECT COUNT(*) AS Count from $ta
                                          WHERE TimeCreated >= '$After'").Count
 
                 Write-Output $number
-
-
-            }
-
-        
+            }        
         }
     }
 }
@@ -1734,20 +2045,32 @@ function Get-TableRowNumber
    Get-LastEventDateFromDatabase
 
 .SYNOPSIS
-   It removes all the contents from any table of the database.
+   Gets the date of the last event of the database.
 
 .SYNTAX
+   Get-LastEventDateFromDatabase [-Table <String>]
    
 .DESCRIPTION
-   
-   This cmdlet Clear-TableContentsFromDatabase helps you interact with the LogDatabase
-   and erase the contents of a specific table. You can pass multible tables at once. See examples.
+   This cmdlet makes an sql query to receive an String value. 
+   This string is the output of the cmdlet and represents the timecreated column value
+   of the last record found in the database. In other words it finds the oldest record 
+   of a table and returns the timecreated column value.
 
 .PARAMETERS
+   -Table <String>
+    Gives to the cmdlet a string value.
+
+    Required?                    true
+    Position?                    1
+    Default value
+    Accept pipeline input?       true
+    Accept wildcard characters?  false 
 
 .INPUTS
+  None
 
 .OUTPUTS
+  A string value.
 
 .NOTES
 
@@ -1755,14 +2078,11 @@ function Get-TableRowNumber
 
    -------------------------- EXAMPLE 1 --------------------------
 
-   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
-
-.EXAMPLE
-
-   -------------------------- EXAMPLE 2 --------------------------
-
-   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
-
+   PS C:\> Get-LastEventDateFromDatabase events
+   
+   This example will output the following:
+   
+   01/30/2015 12:49:38
 
 #>
 function Get-LastEventDateFromDatabase
@@ -1770,53 +2090,78 @@ function Get-LastEventDateFromDatabase
     [CmdletBinding()]
     #[OutputType([String])]
     Param
-    (
-        # Param1 help description
+    (        
         [Parameter(Mandatory=$true,
                    ValueFromPipelineByPropertyName=$true,
                    Position=0)]
-        [string]$Table
-        # Param2 help description
-       
-        
+        [string]$Table       
     )
-
-    Begin
-    {
-    }
     Process
     {
         [string]$eve = (Get-LogDatabaseData -connectionString $LogConnectionString `
                                                -isSQLServer `
                                                -query "SELECT TOP 1 TimeCreated from $Table").TimeCreated
-       # Write-Output 
-       $eve                                         
-
-    }
-    End
-    {
+        # Write-Output 
+        $eve                                         
     }
 }
 
 
 <#
 .NAME
-   
+   Get-EventsOccured
 
 .SYNOPSIS
-   
+   Get the number of the events that have been occured.
 
 .SYNTAX
-
+   Get-EventsOccured [-Table <String>] [-After <String>] [-LogName <String>] [-SecurityType <String>]
    
 .DESCRIPTION
-   
+   This cmdlet provides an integer value to be displayed in the EventsOccured TextField of the LogVisualization script. 
    
 .PARAMETERS
+   -Table <String>
+    Gives to the cmdlet a string value.
+
+    Required?                    true
+    Position?                    1
+    Default value
+    Accept pipeline input?       true
+    Accept wildcard characters?  false
+
+   -After <String>
+    Gives to the cmdlet a string value.
+
+    Required?                    true
+    Position?                    1
+    Default value
+    Accept pipeline input?       true
+    Accept wildcard characters?  false
+
+    -LogName <String>
+    Gives to the cmdlet a string value.
+
+    Required?                    false
+    Position?                    1
+    Default value
+    Accept pipeline input?       true
+    Accept wildcard characters?  false
+
+    -SecurityType <String>
+    Gives to the cmdlet a string value.
+
+    Required?                    false
+    Position?                    1
+    Default value
+    Accept pipeline input?       true
+    Accept wildcard characters?  false
 
 .INPUTS
+   None
 
 .OUTPUTS
+   An integer value.
 
 .NOTES
 
@@ -1824,14 +2169,31 @@ function Get-LastEventDateFromDatabase
 
    -------------------------- EXAMPLE 1 --------------------------
 
-   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
+   PS C:\> Get-EventsOccured -Table Events -After "06/25/2015"
+
+   This example will output the following:
+
+   5718
 
 .EXAMPLE
 
    -------------------------- EXAMPLE 2 --------------------------
 
-   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
+   PS C:\> Get-EventsOccured -Table Events -After "06/25/2015" -LogName Application
 
+   This example will output the following:
+
+   238
+
+.EXAMPLE
+
+   -------------------------- EXAMPLE 3 --------------------------
+
+   PS C:\> Get-EventsOccured -Table Events -After "06/25/2015" -LogName Security -SecurityType Failure
+
+   This example will output the following:
+
+   388
 
 #>
 function Get-EventsOccured
@@ -1840,42 +2202,26 @@ function Get-EventsOccured
     [OutputType([int])]
     Param
     (
-        # Param1 help description
         [Parameter(Mandatory=$true,
                    ValueFromPipelineByPropertyName=$true,
                    Position=0)]
-        $Table,
+        [string]$Table,
         [Parameter(Mandatory=$true)]
         [string]$After,
         [string]$LogName,
         [string]$SecurityType
     )
-
-    Begin
-    {
-       # Write-Host $After
-    }
     Process
     {
-
-        # an den exei erthei logname shmainei oti ta thelei ola kai mpainei edw 
         if ($LogName.Equals("")){
             $query = "SELECT COUNT(*) AS Count FROM $Table
                       WHERE TimeCreated >= '$After'"
-        
-
-        # an exei erthei logname shmainei oti thelei mono kapoio logname ara mpainei edw
         } elseif ($LogName -ne ""){
-
-            # an to logname pou irthe den einai security mpainei edw
             if ($LogName -ne "Security"){
                 $query = "SELECT COUNT(*) AS Count FROM $Table
                           WHERE LogName = '$LogName' 
                           AND TimeCreated >= '$After'"
-
-            # an to logname pou irthe einai security mpainei edw kai elegxei an irthei kai securitytype mazi
-            } elseif ($LogName -eq "Security"){
-                
+            } elseif ($LogName -eq "Security"){               
                 if ($SecurityType -eq "Failure"){
                     $query = "SELECT COUNT(*) AS Count FROM $Table
                               WHERE LogName = '$LogName' AND EventId = 4625
@@ -1890,18 +2236,13 @@ function Get-EventsOccured
                     $query = "SELECT COUNT(*) AS Count FROM $Table
                               WHERE LogName = '$LogName' 
                               AND TimeCreated >= '$After'"
-
                 }
-
-
             }
         }
-
-
     }
     End
     {
-        #phre to query kai twra epikoinwnei me th vash
+        # finally has the query and communicates with the database
         $result = (Get-LogDatabaseData -connectionString $LogConnectionString `
                                  -isSQLServer `
                                  -query $query).Count
