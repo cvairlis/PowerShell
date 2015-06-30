@@ -126,6 +126,12 @@ function Get-DatabaseAvailableTableNames
    It accepts objects of type: System.Diagnostics.Eventing.Reader.EventLogRecord and it works for storing 
    information of events to the Database.
 
+   Basically Set-LogEventInDatabase is going to grab all of the events came from the pipeline and insert them into the database. 
+   For each event that comes from the pipeline Set-LogEventInDatabase takes all of its properties and inserts them into the EVENTS table, one event at a row.
+   
+   If a Security Event comes from the pipeline Set-LogEventInDatabase is able to create new tables 
+   (for events with Id 4624, 4625, 4907, 4672, 4634, 4648, 4797, 4776, 4735) if they do not exist.   
+
 .PARAMETERS
    -EventLogRecordObject <System.Diagnostics.Eventing.Reader.EventLogRecord[]>
     Gives to the cmdlet an array of objects to be set in database.
@@ -864,12 +870,21 @@ function Set-LogEventInDatabase
    Sets the auto increment value of a table to be zero.
 
 .SYNTAX
-
+   Set-TableAutoIncrementValue
    
 .DESCRIPTION
-   
+   All the tables in database created to automatically generate a unique number when a new record is inserted into a table.
+   By clearing the contents of a table, this 
    
 .PARAMETERS
+   -EventLogRecordObject <System.Diagnostics.Eventing.Reader.EventLogRecord[]>
+    Gives to the cmdlet an array of objects to be set in database.
+
+    Required?                    false
+    Position?                    1
+    Default value
+    Accept pipeline input?       true
+    Accept wildcard characters?  false
 
 .INPUTS
 
@@ -881,7 +896,7 @@ function Set-LogEventInDatabase
 
    -------------------------- EXAMPLE 1 --------------------------
 
-   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
+   PS C:\> Set-TableAutoIncrementValue -Table EVENTS
 
 .EXAMPLE
 
@@ -962,17 +977,12 @@ function Clear-TableContentsFromDatabase
                    ValueFromPipelineByPropertyName=$true,
                    Position=0)]
         [String[]]$Table,
-
         [int]$AutoIncrementValue=0
-
     )
     Process
     {
-
         foreach ($ta in $Table) {
-
             $query = "DELETE FROM $ta"
-
             Write-Verbose "Query will be '$query'"
             Write-Verbose "Deleted Records FOR '$ta' Table:"
             Invoke-LogDatabaseQuery -connection $LogConnectionString `
@@ -983,8 +993,7 @@ function Clear-TableContentsFromDatabase
 
             Write-Verbose "AutoIncrementValue for Table $ta will be $AutoIncrementValue."
             $AutoIncrementValue++
-            Write-Verbose "The first next new record for Table: $ta will have Id value = $AutoIncrementValue"
-        
+            Write-Verbose "The first next new record for Table: $ta will have Id value = $AutoIncrementValue"        
         }
     }
 }
