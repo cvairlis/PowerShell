@@ -3,10 +3,6 @@ $LogConnectionString =
         "server=localhost\SQLEXPRESS;database=LogDB;trusted_connection=True"
 
 
-#Import-Module LogDatabase
-# remove and then import to be sure we have the latest changes in memory
-
-
 Import-Module LogAnalysis
 
 
@@ -77,10 +73,8 @@ function Get-DatesUntilNow
 function Get-LogVisualization
 {
     [CmdletBinding()]
-    #[OutputType([int])]
     Param
     (
-         # Param1 help description
         [Parameter(Mandatory=$false,
                    ValueFromPipelineByPropertyName=$false,
                    Position=0)]
@@ -213,7 +207,7 @@ using explicit credentials..."
         $Form = New-Object system.Windows.Forms.Form
 
 
-        $Form.Text = "Log Visualization"
+        $Form.Text = "Intrusion Detection Results"
         $Form.Width = 1200
         $Form.Height = 700
         $Form.MaximizeBox = $False
@@ -232,21 +226,21 @@ using explicit credentials..."
         $panel1.Size = '1191,667'
         #$panel1.Location = '40,22'
         $panel1.TabIndex = 0
-        $panel1.Text = "Log Analysis Results 1"
+        $panel1.Text = "Data Visualization"
         $panel1.BackColor = [System.Drawing.Color]::WhiteSmoke
 
         $panel2 = New-Object System.Windows.Forms.TabPage
         $panel2.Size = '1191,667'
         #$panel2.Location = '40,22'
         $panel2.TabIndex = 1
-        $panel2.Text = "Log Analysis Results 2"
+        $panel2.Text = "Additional Information"
         $panel2.BackColor = [System.Drawing.Color]::WhiteSmoke
 
         $panel3 = New-Object System.Windows.Forms.TabPage
         $panel3.Size = '1191,667'
         #$panel2.Location = '40,22'
         $panel3.TabIndex = 2
-        $panel3.Text = "Log Analysis Actions"
+        $panel3.Text = "Detection Actions"
         $panel3.BackColor = [System.Drawing.Color]::WhiteSmoke
 
         $tab_control = new-object System.Windows.Forms.TabControl
@@ -500,7 +494,7 @@ Events Found:"
         $EventsGroupTextBox.Text = $Global:AllDataGroupByLogName.GetEnumerator()  | 
                                    select Name, Value |
                                    Sort-Object -Property Value -Descending  | 
-                                   Out-String -Width 30
+                                   Out-String -Width 40
                                    
 
         #$EventsGroupTextBox.Text = $AllDataGroupByLogName | sort count -Descending | Out-String
@@ -815,7 +809,7 @@ Events Found:"
                 $Chart.Series["Data"].Color = [System.Drawing.Color]::DarkCyan
                 $EventsGroupTextBox.Text = $Global:AllDataTimeLine.getenumerator() |
                                                                    select Name, Value |                                               
-                                                                    Out-String -Width 25
+                                                                    Out-String -Width 35
                 $Chart.Series["Data"].Points.DataBindXY($Global:AllDataTimeLine.Keys, $Global:AllDataTimeLine.Values)
                 $Chart.Series["Data"].ChartType = [System.Windows.Forms.DataVisualization.Charting.SeriesChartType]::Line
             }
@@ -839,7 +833,7 @@ Events Found:"
                 $Chart.Series["Data"].Color = [System.Drawing.Color]::DarkCyan
                 $EventsGroupTextBox.Text = $Global:AppDataTimeLine.getenumerator() |
                                                                    select Name, Value |                                               
-                                                                    Out-String -Width 25
+                                                                    Out-String -Width 35
                 $Chart.Series["Data"].Points.DataBindXY($Global:AppDataTimeLine.Keys, $Global:AppDataTimeLine.Values)
                 $Chart.Series["Data"].ChartType = [System.Windows.Forms.DataVisualization.Charting.SeriesChartType]::Line
             }
@@ -867,7 +861,7 @@ Events Found:"
                        
                     } elseif($TimeLineRadioButton.Checked){
                         $Chart.Series["Data"].Color = [System.Drawing.Color]::DarkCyan
-                        $EventsGroupTextBox.Text = $Global:SecDataTimeLine.GetEnumerator() | select name,value | Out-String -Width 25
+                        $EventsGroupTextBox.Text = $Global:SecDataTimeLine.GetEnumerator() | select name,value | Out-String -Width 35
                         $Chart.Series["Data"].Points.DataBindXY($Global:SecDataTimeLine.Keys, $Global:SecDataTimeLine.Values)
                         $Chart.Series["Data"].ChartType = [System.Windows.Forms.DataVisualization.Charting.SeriesChartType]::Line
                     };break
@@ -880,7 +874,7 @@ Events Found:"
                   
                     $Chart.Series["Data"].Color = [System.Drawing.Color]::PaleVioletRed
                     $EventsGroupTextBox.Text = $Global:SecFailDataTimeLine.GetEnumerator() | 
-                                                            select name,value | Out-String -Width 25
+                                                            select name,value | Out-String -Width 35
                     $Chart.Series["Data"].Points.DataBindXY($Global:SecFailDataTimeLine.Keys, $Global:SecFailDataTimeLine.Values)
                     $Chart.Series["Data"].ChartType = [System.Windows.Forms.DataVisualization.Charting.SeriesChartType]::Line
                     ;break
@@ -892,7 +886,7 @@ Events Found:"
                     $EventsOccuredTextBox.Text = $Global:SecSuccDataEventsOccured | Out-String
                    
                     $Chart.Series["Data"].Color = [System.Drawing.Color]::YellowGreen
-                    $EventsGroupTextBox.Text = $Global:SecSuccDataTimeLine.GetEnumerator() | select name,value | Out-String -Width 25
+                    $EventsGroupTextBox.Text = $Global:SecSuccDataTimeLine.GetEnumerator() | select name,value | Out-String -Width 35
                     $Chart.Series["Data"].Points.DataBindXY($Global:SecSuccDataTimeLine.Keys, $Global:SecSuccDataTimeLine.Values)
                     $Chart.Series["Data"].ChartType = [System.Windows.Forms.DataVisualization.Charting.SeriesChartType]::Line
                     ;break
@@ -916,7 +910,7 @@ Events Found:"
                 $Chart.Series["Data"].Color = [System.Drawing.Color]::DarkCyan
                 $EventsGroupTextBox.Text = $Global:SysDataTimeLine.getenumerator() |
                                                                    select Name, Value |                                               
-                                                                    Out-String -Width 25
+                                                                    Out-String -Width 35
                 $Chart.Series["Data"].Points.DataBindXY($Global:SysDataTimeLine.Keys, $Global:SysDataTimeLine.Values)
                 $Chart.Series["Data"].ChartType = [System.Windows.Forms.DataVisualization.Charting.SeriesChartType]::Line
             }
@@ -976,14 +970,14 @@ Events Found:"
                 $Chart.Series["Data"].Color = [System.Drawing.Color]::DarkCyan
                 $EventsGroupTextBox.Text = $Global:AllDataTimeLine.getenumerator() |
                                                                    select Name, Value |                                               
-                                                                    Out-String -Width 25
+                                                                    Out-String -Width 35
                 $Chart.Series["Data"].Points.DataBindXY($Global:AllDataTimeLine.Keys, $Global:AllDataTimeLine.Values)
                 
                 
             } elseif ($ApplicationEventsRadioButton.Checked){
                 $EventsOccuredTextBox.Text = $Global:AppDataEventsOccured | Out-String
                 $Chart.Series["Data"].Color = [System.Drawing.Color]::DarkCyan
-                $EventsGroupTextBox.Text = $Global:AppDataTimeLine.GetEnumerator() | select name,value | Out-String -Width 25
+                $EventsGroupTextBox.Text = $Global:AppDataTimeLine.GetEnumerator() | select name,value | Out-String -Width 35
                 
                 $Chart.Series["Data"].Points.DataBindXY($Global:AppDataTimeLine.Keys, $Global:AppDataTimeLine.Values)
             } elseif ($SecurityEventsRadioButton.Checked){
@@ -992,7 +986,7 @@ Events Found:"
                         $EventsOccuredTextBox.Text = $Global:SecDataEventsOccured | Out-String
                         $Chart.Series["Data"].Color = [System.Drawing.Color]::DarkCyan
                                           
-                        $EventsGroupTextBox.Text = $Global:SecDataTimeLine.GetEnumerator() | select name,value | Out-String -Width 25
+                        $EventsGroupTextBox.Text = $Global:SecDataTimeLine.GetEnumerator() | select name,value | Out-String -Width 35
                         $Chart.Series["Data"].Points.DataBindXY($Global:SecDataTimeLine.Keys, $Global:SecDataTimeLine.Values)
                         #$Chart.Series["Data"].ChartType = [System.Windows.Forms.DataVisualization.Charting.SeriesChartType]::Line                               
                     }
@@ -1000,7 +994,7 @@ Events Found:"
                         $EventsOccuredTextBox.Text = $Global:SecFailDataEventsOccured | Out-String
                         $Chart.Series["Data"].Color = [System.Drawing.Color]::PaleVioletRed
                     
-                        $EventsGroupTextBox.Text = $Global:SecFailDataTimeLine.GetEnumerator() | select name,value | Out-String -Width 25
+                        $EventsGroupTextBox.Text = $Global:SecFailDataTimeLine.GetEnumerator() | select name,value | Out-String -Width 35
                         $Chart.Series["Data"].Points.DataBindXY($Global:SecFailDataTimeLine.Keys, $Global:SecFailDataTimeLine.Values)
                         #$Chart.Series["Data"].ChartType = [System.Windows.Forms.DataVisualization.Charting.SeriesChartType]::Line
                     }
@@ -1008,7 +1002,7 @@ Events Found:"
                         $EventsOccuredTextBox.Text = $Global:SecSuccDataEventsOccured | Out-String
                         $Chart.Series["Data"].Color = [System.Drawing.Color]::YellowGreen
                         
-                        $EventsGroupTextBox.Text = $Global:SecSuccDataTimeLine.GetEnumerator() | select name,value | Out-String -Width 25
+                        $EventsGroupTextBox.Text = $Global:SecSuccDataTimeLine.GetEnumerator() | select name,value | Out-String -Width 35
                         $Chart.Series["Data"].Points.DataBindXY($Global:SecSuccDataTimeLine.Keys, $Global:SecSuccDataTimeLine.Values)
                         #$Chart.Series["Data"].ChartType = [System.Windows.Forms.DataVisualization.Charting.SeriesChartType]::Line
                     }
@@ -1016,7 +1010,7 @@ Events Found:"
             } elseif ($SystemEventsRadioButton.Checked){
                 $EventsOccuredTextBox.Text = $Global:SysDataEventsOccured | Out-String
                 $Chart.Series["Data"].Color = [System.Drawing.Color]::DarkCyan
-                $EventsGroupTextBox.Text = $Global:SysDataTimeLine.GetEnumerator() | select name,value | Out-String -Width 25
+                $EventsGroupTextBox.Text = $Global:SysDataTimeLine.GetEnumerator() | select name,value | Out-String -Width 35
                 
                 $Chart.Series["Data"].Points.DataBindXY($Global:SysDataTimeLine.Keys, $Global:SysDataTimeLine.Values)
             }
@@ -1046,7 +1040,7 @@ Events Found:"
                        
                     } elseif($TimeLineRadioButton.Checked){
                         $Chart.Series["Data"].Color = [System.Drawing.Color]::DarkCyan
-                        $EventsGroupTextBox.Text = $Global:SecDataTimeLine.GetEnumerator() | select name,value | Out-String -Width 25
+                        $EventsGroupTextBox.Text = $Global:SecDataTimeLine.GetEnumerator() | select name,value | Out-String -Width 35
                         $Chart.Series["Data"].Points.DataBindXY($Global:SecDataTimeLine.Keys, $Global:SecDataTimeLine.Values)
                         $Chart.Series["Data"].ChartType = [System.Windows.Forms.DataVisualization.Charting.SeriesChartType]::Line
                     };break
@@ -1059,7 +1053,7 @@ Events Found:"
                   
                     $Chart.Series["Data"].Color = [System.Drawing.Color]::PaleVioletRed
                     $EventsGroupTextBox.Text = $Global:SecFailDataTimeLine.GetEnumerator() | 
-                                                            select name,value | Out-String -Width 25
+                                                            select name,value | Out-String -Width 35
                     $Chart.Series["Data"].Points.DataBindXY($Global:SecFailDataTimeLine.Keys, $Global:SecFailDataTimeLine.Values)
                     $Chart.Series["Data"].ChartType = [System.Windows.Forms.DataVisualization.Charting.SeriesChartType]::Line
                     ;break
@@ -1071,7 +1065,7 @@ Events Found:"
                     $EventsOccuredTextBox.Text = $Global:SecSuccDataEventsOccured | Out-String
                    
                     $Chart.Series["Data"].Color = [System.Drawing.Color]::YellowGreen
-                    $EventsGroupTextBox.Text = $Global:SecSuccDataTimeLine.GetEnumerator() | select name,value | Out-String -Width 25
+                    $EventsGroupTextBox.Text = $Global:SecSuccDataTimeLine.GetEnumerator() | select name,value | Out-String -Width 35
                     $Chart.Series["Data"].Points.DataBindXY($Global:SecSuccDataTimeLine.Keys, $Global:SecSuccDataTimeLine.Values)
                     $Chart.Series["Data"].ChartType = [System.Windows.Forms.DataVisualization.Charting.SeriesChartType]::Line
                     ;break
@@ -1199,56 +1193,54 @@ function Get-PreparedForVisualization
         # data have to be loaded 
         $PreparingDataForm = New-Object System.Windows.Forms.Form
 
-        $PreparingDataForm.Text = "Preparing Log Data"
+        $PreparingDataForm.Text = "Preparing Data"
         $PreparingDataForm.Width = 500
         $PreparingDataForm.Height = 470
         $PreparingDataForm.MaximizeBox = $False
         $PreparingDataForm.StartPosition = 'CenterScreen'
         $PreparingDataForm.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::Fixed3D
         $PreparingDataForm.BackColor = [System.Drawing.Color]::LightCyan
-
-
-
+        
         $EventsFoundLabel = New-Object system.windows.forms.label
         $EventsFoundLabel.Text = "Total Event Log Events Found:"
         $EventsFoundLabel.Size = '312,30'
-        $EventsFoundLabel.Location = '22,60'
+        $EventsFoundLabel.Location = '25,90'
         $EventsFoundLabel.Font = New-object System.Drawing.Font('Calibri', 18, [System.Drawing.FontStyle]::Bold, [System.Drawing.GraphicsUnit]::Point,0)
         
         $PreparingDataForm.Controls.Add($EventsFoundLabel)
-
-
-        
+                     
         $EventsFoundTextBox = New-Object -TypeName 'System.Windows.Forms.TextBox'
         $EventsFoundTextBox.Size = '100,20'
-        $EventsFoundTextBox.Location = '340,60'
+        $EventsFoundTextBox.Location = '340,90'
         $EventsFoundTextBox.Font = New-Object System.Drawing.Font("Times New Roman",16)
         $EventsFoundTextBox.ReadOnly = $true
         
         $EventsFoundTextBox.Text = Get-TableRowNumber -Table events | Out-String
 
         $PreparingDataForm.Controls.Add($EventsFoundTextBox)
-
-
-
-         # Label for the available machines combobox
+                
         $InformationLabel = New-Object system.windows.forms.label
-        $InformationLabel.Text = "Windows Event Log Analysis and Visualization"
-        $InformationLabel.Size = '450,40'
-        $InformationLabel.Location = '35,15'
+        $InformationLabel.Text = "Utilizing Windows PowerShell"
+        $InformationLabel.Size = '450,30'
+        $InformationLabel.Location = '115,20'
         $InformationLabel.ForeColor = [System.Drawing.Color]::DimGray
         $InformationLabel.Font = New-object System.Drawing.Font('Calibri', 15, [System.Drawing.FontStyle]::Bold, [System.Drawing.GraphicsUnit]::Point,0)
         
         $PreparingDataForm.Controls.Add($InformationLabel)
+              
+        $InformationLabel2 = New-Object system.windows.forms.label
+        $InformationLabel2.Text = "for Host-based IDS Log Monitoring"
+        $InformationLabel2.Size = '450,30'
+        $InformationLabel2.Location = '100,50'
+        $InformationLabel2.ForeColor = [System.Drawing.Color]::DimGray
+        $InformationLabel2.Font = New-object System.Drawing.Font('Calibri', 15, [System.Drawing.FontStyle]::Bold, [System.Drawing.GraphicsUnit]::Point,0)
 
+         $PreparingDataForm.Controls.Add($InformationLabel2)
 
-
-
-        # Label for the available machines combobox
         $ProceedLabel = New-Object system.windows.forms.label
         $ProceedLabel.Text = "Proceed by choosing a time range."
         $ProceedLabel.Size = '400,40'
-        $ProceedLabel.Location = '40,130'
+        $ProceedLabel.Location = '40,145'
         $ProceedLabel.Font = New-object System.Drawing.Font('Calibri', 12, [System.Drawing.FontStyle]::Bold, [System.Drawing.GraphicsUnit]::Point,0)
         
         $PreparingDataForm.Controls.Add($ProceedLabel)
