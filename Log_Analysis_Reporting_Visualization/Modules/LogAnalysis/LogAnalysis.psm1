@@ -10,7 +10,7 @@ Import-Module LogDatabase
   # ______________________________________________________________________________________________________ 
   # ======================================================================================================
 
-  LogAnalysis Module contains 18 cmdlets. All these "LogAnalysis" cmdlets are divided in two 4 major groups.
+  LogAnalysis Module contains 18 cmdlets. All these "LogAnalysis" cmdlets are divided in two 3 major groups.
   
 
    ## First Group ##
@@ -43,10 +43,6 @@ Import-Module LogDatabase
     # cmdlets that are used only from the script: "ScheduleLogs.ps1"
       Get-LastStoredEvent
 
-
-   ## Fourth Group ##
-    # cmdlets that are never used    
-      Get-TableColumnNumber   
 
    # ======================================================================================================
    # ______________________________________________________________________________________________________
@@ -874,21 +870,23 @@ function Set-LogEventInDatabase
    
 .DESCRIPTION
    All the tables in database created to automatically generate a unique number when a new record is inserted into a table.
-   By clearing the contents of a table, this 
+   Set-TableAutoIncrementValue cmdlet is used from Clear-TableContentsFromDatabase cmdlet.
    
 .PARAMETERS
-   -EventLogRecordObject <System.Diagnostics.Eventing.Reader.EventLogRecord[]>
-    Gives to the cmdlet an array of objects to be set in database.
+   -Table <String[]>
+    Gives to the cmdlet a string value that represents a table name.
 
-    Required?                    false
+    Required?                    true
     Position?                    1
     Default value
     Accept pipeline input?       true
     Accept wildcard characters?  false
 
 .INPUTS
+   [String[]]
 
 .OUTPUTS
+   None
 
 .NOTES
 
@@ -902,9 +900,8 @@ function Set-LogEventInDatabase
 
    -------------------------- EXAMPLE 2 --------------------------
 
-   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
-
-
+   PS C:\> Set-TableAutoIncrementValue -Table EVENTS, DETAILS4624
+   
 #>
 function Set-TableAutoIncrementValue
 {
@@ -914,9 +911,12 @@ function Set-TableAutoIncrementValue
         [Parameter(Mandatory=$true,
                    ValueFromPipelineByPropertyName=$true,
                    Position=0)]
-        [String[]]$Table,
-        [int]$Value=0     
+        [String[]]$Table 
     )
+    Begin
+    {
+        $Value=0
+    }
     Process
     {
         foreach ($ta in $Table){
@@ -939,16 +939,25 @@ function Set-TableAutoIncrementValue
 
 .SYNTAX
    
-.DESCRIPTION
-   
+.DESCRIPTION   
    This cmdlet Clear-TableContentsFromDatabase helps you interact with the LogDatabase
    and erase the contents of a specific table. You can pass multible tables at once. See examples.
 
 .PARAMETERS
+   -Table <String[]>
+    Gives to the cmdlet a string value that represents a table name.
+
+    Required?                    true
+    Position?                    1
+    Default value
+    Accept pipeline input?       true
+    Accept wildcard characters?  false
 
 .INPUTS
+   [String[]]
 
 .OUTPUTS
+   None
 
 .NOTES
 
@@ -963,8 +972,7 @@ function Set-TableAutoIncrementValue
    -------------------------- EXAMPLE 2 --------------------------
 
    PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
-
-
+   
 #>
 function Clear-TableContentsFromDatabase
 {
@@ -972,12 +980,10 @@ function Clear-TableContentsFromDatabase
     [OutputType([int])]
     Param
     (
-        # Param1 help description
         [Parameter(Mandatory=$true,
                    ValueFromPipelineByPropertyName=$true,
                    Position=0)]
-        [String[]]$Table,
-        [int]$AutoIncrementValue=0
+        [String[]]$Table
     )
     Process
     {
@@ -989,11 +995,7 @@ function Clear-TableContentsFromDatabase
                                     -isSQLServer `
                                     -query $query
 
-            Set-TableAutoIncrementValue -Table: $ta -Value $AutoIncrementValue
-
-            Write-Verbose "AutoIncrementValue for Table $ta will be $AutoIncrementValue."
-            $AutoIncrementValue++
-            Write-Verbose "The first next new record for Table: $ta will have Id value = $AutoIncrementValue"        
+            Set-TableAutoIncrementValue -Table: $ta         
         }
     }
 }
@@ -1001,101 +1003,42 @@ function Clear-TableContentsFromDatabase
 
 <#
 .NAME
-   
+   Get-LogonType
 
 .SYNOPSIS
-   
+   Gets the explanation of a logon type.
 
 .SYNTAX
-
+   Get-LogonType [[-LogonType] <Int32>]
    
 .DESCRIPTION
-   
+   For some security events there is a logon type within the message of the event.
+   This logon type is represented by a number. This cmdlet takes as a parameter 
+   the Logon Type as an integer and returns a string with what this integer means.
    
 .PARAMETERS
+   -LogonType <Int32>
+    Gives to the cmdlet an integer value that represents a logon type.
+
+    Required?                    true
+    Position?                    1
+    Default value
+    Accept pipeline input?       true
+    Accept wildcard characters?  false
 
 .INPUTS
+   [Int32]
 
 .OUTPUTS
-
+   [string]
+   
 .NOTES
 
 .EXAMPLE
 
    -------------------------- EXAMPLE 1 --------------------------
 
-   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
-
-.EXAMPLE
-
-   -------------------------- EXAMPLE 2 --------------------------
-
-   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
-
-
-#>
-function Get-CaptionFromSId
-{
-    [CmdletBinding()]
-    [OutputType([String])]
-    Param
-    (
-        # Param1 help description
-        [Parameter(Mandatory=$true,
-                   ValueFromPipelineByPropertyName=$true,
-                   Position=0)]
-        [string]$Sid
-    )
-    Process
-    {
-        [System.Management.ManagementObject[]]$s = Get-WmiObject -Class Win32_Account
-        
-        foreach ($ob in $s){
-            if($ob.sid -eq $Sid){
-                Write-Output $ob.caption
-            }        
-        }
-        
-        if($Sid -eq "S-1-0-0"){
-            Write-Output "NULL-SID"
-        }
-    }
-}
-
-
-<#
-.NAME
-   
-
-.SYNOPSIS
-   
-
-.SYNTAX
-
-   
-.DESCRIPTION
-   
-   
-.PARAMETERS
-
-.INPUTS
-
-.OUTPUTS
-
-.NOTES
-
-.EXAMPLE
-
-   -------------------------- EXAMPLE 1 --------------------------
-
-   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
-
-.EXAMPLE
-
-   -------------------------- EXAMPLE 2 --------------------------
-
-   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
-
+   PS C:\> Get-LogonType -LogonType 8
 
 #>
 function Get-LogonType
@@ -1104,7 +1047,6 @@ function Get-LogonType
     [OutputType([String])]
     Param
     (
-        # Param1 help description
         [Parameter(Mandatory=$true,
                    ValueFromPipelineByPropertyName=$true,
                    Position=0)]
@@ -1130,37 +1072,43 @@ function Get-LogonType
 
 <#
 .NAME
-   
+   Get-ImpersonationLevelExplanation
 
 .SYNOPSIS
-   
+   Gets the explanation of an impersonation level.
 
 .SYNTAX
-
+   Get-ImpersonationLevelExplanation [[-ImpersonationLevel] <String>]
    
 .DESCRIPTION
-   
+   For security events with id 4624 there is an impersonation level within the message of the event.
+   This impersonation level is represented by a string. This cmdlet takes as a parameter 
+   the impersonation level as a string and returns a string with what this impersonation level means.
    
 .PARAMETERS
+   -ImpersonationLevel <String>
+    Gives to the cmdlet a string value that represents an impersonation level.
+
+    Required?                    true
+    Position?                    1
+    Default value
+    Accept pipeline input?       true
+    Accept wildcard characters?  false
 
 .INPUTS
+   [string]
 
 .OUTPUTS
+   [string]
 
 .NOTES
+   None
 
 .EXAMPLE
 
    -------------------------- EXAMPLE 1 --------------------------
 
-   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
-
-.EXAMPLE
-
-   -------------------------- EXAMPLE 2 --------------------------
-
-   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
-
+   PS C:\> Get-ImpersonationLevelExplanation -ImpersonationLevel Anonymous
 
 #>
 function Get-ImpersonationLevelExplanation
@@ -1169,7 +1117,6 @@ function Get-ImpersonationLevelExplanation
     [OutputType([String])]
     Param
     (
-        # Param1 help description
         [Parameter(Mandatory=$true,
                    ValueFromPipelineByPropertyName=$true,
                    Position=0)]
@@ -1191,37 +1138,43 @@ function Get-ImpersonationLevelExplanation
 
 <#
 .NAME
-   
+   Get-StatusExplanation
 
 .SYNOPSIS
-   
+   Gets the explanation of an event status.
 
 .SYNTAX
-
+   Get-StatusExplanation [[-Status] <String>]
    
 .DESCRIPTION
-   
+   For security events with id 4625 there is an status within the message of the event.
+   This status is represented by a hexadecimal number. This cmdlet takes as a parameter 
+   the status as a string and returns a string with what this status means.
    
 .PARAMETERS
+   -Status <String>
+    Gives to the cmdlet a string value that represents an event status.
+
+    Required?                    true
+    Position?                    1
+    Default value
+    Accept pipeline input?       true
+    Accept wildcard characters?  false
 
 .INPUTS
+   [string]
 
 .OUTPUTS
+   [string]
 
 .NOTES
+   None
 
 .EXAMPLE
 
    -------------------------- EXAMPLE 1 --------------------------
 
-   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
-
-.EXAMPLE
-
-   -------------------------- EXAMPLE 2 --------------------------
-
-   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
-
+   PS C:\> Get-StatusExplanation -Status 0xC0000064
 
 #>
 function Get-StatusExplanation
@@ -1230,16 +1183,11 @@ function Get-StatusExplanation
     [OutputType([String])]
     Param
     (
-        # Param1 help description
         [Parameter(Mandatory=$true,
                    ValueFromPipelineByPropertyName=$true,
                    Position=0)]
         [string]$Status
     )
-
-    Begin
-    {
-    }
     Process
     {
         switch ($Status){
@@ -1256,9 +1204,7 @@ function Get-StatusExplanation
             "0xC0000225"{"Evidently a bug in Windows and not a risk.";break}
             "0xc000015b"{"The user has not been granted the requested logon type (aka logon right) at this machine.";break}
             default{$Status}
-
-        }
-        
+        }        
     }
 }
 
@@ -2480,83 +2426,11 @@ function Get-LastStoredEvent
 
 
 
-# ==================================================================
-## Fourth Group ## START
-# cmdlets that are never used    
-
-<#
-.NAME
-   
-
-.SYNOPSIS
-   
-
-.SYNTAX
-
-   
-.DESCRIPTION
-   
-   
-.PARAMETERS
-
-.INPUTS
-
-.OUTPUTS
-
-.NOTES
-
-.EXAMPLE
-
-   -------------------------- EXAMPLE 1 --------------------------
-
-   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
-
-.EXAMPLE
-
-   -------------------------- EXAMPLE 2 --------------------------
-
-   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
-
-
-#>
-function Get-TableColumnNumber
-{
-    [CmdletBinding()]
-    [OutputType([int])]
-    Param
-    (
-        # Param1 help description
-        [Parameter(Mandatory=$true,
-                   ValueFromPipelineByPropertyName=$true,
-                   Position=0)]
-        [String[]]$Table
-    )
-    Process
-    {
-         foreach ($ta in $Table){
-        
-             Get-LogDatabaseData -connectionString $LogConnectionString `
-                                 -isSQLServer `
-                                 -query "select count(*)
-                                         from LogDB.sys.columns
-                                         where object_id=OBJECT_ID('$ta')"
-        
-        }
-    }
-}
-
-## Fourth Group ## END
-# cmdlets that are never used  
-# ==================================================================
-
-
-
 Export-ModuleMember -Variable MOLErrorLogPreference
 Export-ModuleMember -Function Get-DatabaseAvailableTableNames,
                               Set-LogEventInDatabase,
                               Set-TableAutoIncrementValue,
                               Clear-TableContentsFromDatabase,
-                              Get-CaptionFromSId,
                               Get-LogonType,
                               Get-ImpersonationLevelExplanation,
                               Get-StatusExplanation,
@@ -2570,7 +2444,6 @@ Export-ModuleMember -Function Get-DatabaseAvailableTableNames,
                               Get-HashTableForTimeLineChart,
                               Get-LogonIpAddresses,
                               Get-TableContents,
-                              Get-LastStoredEvent,
-                              Get-TableColumnNumber
+                              Get-LastStoredEvent
     
                              
