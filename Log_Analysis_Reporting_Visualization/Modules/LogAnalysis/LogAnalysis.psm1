@@ -2253,91 +2253,148 @@ function Get-EventsOccured
 
 <#
 .NAME
-   
+   Get-HashTableForPieChart
 
 .SYNOPSIS
-   
+   Gets a hash table to be used for pie chart.
 
 .SYNTAX
+   Get-HashTableForPieChart [[-Table <String>] [-After <String>]]
 
+   Get-HashTableForPieChart [[-Table <String>] [-After <String>] [-LogName <String>]]
    
 .DESCRIPTION
-   
+   This cmdlet is used from the LogVisualization script in order to display the pie charts.
+   It implements simple group by queries to retrieve data from database.   
    
 .PARAMETERS
+   -Table <String>
+    Gives to the cmdlet a string value.
+
+    Required?                    true
+    Position?                    1
+    Default value
+    Accept pipeline input?       true
+    Accept wildcard characters?  false
+
+   -After <String>
+    Gives to the cmdlet a string value.
+
+    Required?                    true
+    Position?                    1
+    Default value
+    Accept pipeline input?       true
+    Accept wildcard characters?  false
+
+   -LogName <String>
+    Gives to the cmdlet a string value.
+
+    Required?                    false
+    Position?                    1
+    Default value
+    Accept pipeline input?       true
+    Accept wildcard characters?  false
 
 .INPUTS
+   None
 
 .OUTPUTS
+   [System.Collections.Hashtable]
 
 .NOTES
+   None
 
 .EXAMPLE
 
    -------------------------- EXAMPLE 1 --------------------------
 
-   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
+   PS C:\> Get-HashTableForPieChart -Table EVENTS -After "06/01/2015"
+
+   This example will output the following:
+   
+   Name                           Value
+   ----                           -----
+   Application                    2003
+   System                         4646
+   Security                       16968
+
 
 .EXAMPLE
 
    -------------------------- EXAMPLE 2 --------------------------
 
-   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
+   PS C:\> Get-HashTableForPieChart -Table EVENTS -After "06/01/2015" -LogName Security
 
+   This example will output the following:
+
+   Name                           Value
+   ----                           -----
+   4722                           1
+   4648                           1899
+   4647                           13
+   4776                           2554
+   4902                           9
+   4728                           1
+   4616                           7
+   4672                           3085
+   4720                           1
+   4624                           3124
+   4634                           2568
+   4907                           165
+   1100                           9
+   5024                           9
+   4717                           1
+   4738                           5
+   4732                           2
+   4723                           1
+   4797                           136
+   4608                           9
+   4625                           3359
+   4724                           1
+   5033                           9
 
 #>
 function Get-HashTableForPieChart
 {
     [CmdletBinding()]
-    #[OutputType([int])]
     Param
     (
-        # Param1 help description
         [Parameter(Mandatory=$true,
                    ValueFromPipelineByPropertyName=$false,
                    Position=0)]
         [string]$Table,
         [Parameter(Mandatory=$true)]
         [string]$After,
-        [string]$LogName,
-        [switch]$EventId
+        [string]$LogName
     )
-
     Begin
     {
         [System.Collections.Hashtable]$hashTable = [ordered]@{}
     }
     Process
     {
-         # an den exei erthei logname shmainei oti tha kanei omadopoihsh ana LOGNAME kai mpainei edw 
+        # if a logname has not been specified information will be grouped by logname
         if ($LogName.Equals("")){
             $query = "SELECT LogName AS Name, COUNT(*) AS Count FROM $Table
                       WHERE TimeCreated >= '$After'
                       GROUP BY LogName
-                      ORDER BY Count DESC"
-        
-
-        # an exei erthei logname shmainei oti thelei omadopohsh ana EVENTID ara mpainei edw
+                      ORDER BY Count DESC" 
+        # if a logname has been specified information will be grouped by eventid
         } elseif ($LogName -ne ""){
-
             $query = "SELECT EventId AS Name, COUNT(*) AS Count FROM $Table
                           WHERE LogName = '$LogName' 
                           AND TimeCreated >= '$After'
                           GROUP BY EventId
                           ORDER BY Count DESC"
-
         }
     }
-
     End
     {
-        #phre to query kai twra epikoinwnei me th vash
+        # get the query and now communicates with the database
         $result = Get-LogDatabaseData -connectionString $LogConnectionString `
                                  -isSQLServer `
                                  -query $query
-
-
-        
+                                         
         foreach ($res in $result){
             $hashTable.Add(($res.Name).tostring(),$res.Count)
         }
@@ -2348,76 +2405,173 @@ function Get-HashTableForPieChart
 
 <#
 .NAME
-   
+   Get-HashTableForTimeLineChart
 
 .SYNOPSIS
-   
+   Gets a hash table to be used for timeline chart.
 
 .SYNTAX
+   Get-HashTableForPieChart [[-Table <String>] [-After <String>]]
 
+   Get-HashTableForPieChart [[-Table <String>] [-After <String>] [-LogName <String>]]
+
+   Get-HashTableForPieChart [[-Table <String>] [-After <String>] [-LogName <String>] [-SecurityType <String>]]
    
 .DESCRIPTION
-   
+   This cmdlet is used from the LogVisualization script in order to display the timeline charts.
+   It implements simple group by queries to retrieve data from database.   
    
 .PARAMETERS
+   -Table <String>
+    Gives to the cmdlet a string value.
+
+    Required?                    true
+    Position?                    1
+    Default value
+    Accept pipeline input?       true
+    Accept wildcard characters?  false
+
+   -After <String>
+    Gives to the cmdlet a string value.
+
+    Required?                    true
+    Position?                    1
+    Default value
+    Accept pipeline input?       true
+    Accept wildcard characters?  false
+
+   -LogName <String>
+    Gives to the cmdlet a string value.
+
+    Required?                    false
+    Position?                    1
+    Default value
+    Accept pipeline input?       true
+    Accept wildcard characters?  false
+
+   -SecurityType <String>
+    Gives to the cmdlet a string value.
+
+    Required?                    false
+    Position?                    1
+    Default value
+    Accept pipeline input?       true
+    Accept wildcard characters?  false
 
 .INPUTS
+   None
 
 .OUTPUTS
+   [System.Collections.Hashtable]
 
 .NOTES
+   None
 
 .EXAMPLE
 
    -------------------------- EXAMPLE 1 --------------------------
 
-   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
+   PS C:\> Get-HashTableForTimeLineChart -Table EVENTS -After "06/01/2015"
+
+   This example will output the following:
+
+   Name                           Value
+   ----                           -----
+   01_Jun                         285
+   02_Jun                         356
+   03_Jun                         131
+   04_Jun                         229
+   05_Jun                         659
+   06_Jun                         662
+   07_Jun                         550
+   08_Jun                         265
+   09_Jun                         84
+   10_Jun                         315
+   11_Jun                         662
+   12_Jun                         208
+   13_Jun                         520
+   14_Jun                         953
+   15_Jun                         1111
+   16_Jun                         1127
+   17_Jun                         1075
+   18_Jun                         1038
+   19_Jun                         536
+   20_Jun                         1032
+   21_Jun                         1505
+   22_Jun                         998
+   23_Jun                         1139
+   24_Jun                         1926
+   25_Jun                         1071
+   26_Jun                         1068
+   27_Jun                         1036
+   28_Jun                         839
+   29_Jun                         900
+   30_Jun                         1059
+   01_Jul                         283
+
 
 .EXAMPLE
 
    -------------------------- EXAMPLE 2 --------------------------
 
-   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
+   PS C:\> Get-HashTableForTimeLineChart -Table EVENTS -After "02/01/2015" -LogName Security -SecurityType Failure
 
+   This example will output the following:
+
+   Name                           Value
+   ----                           -----
+   01_Feb-07_Feb                  0
+   08_Feb-14_Feb                  0
+   15_Feb-21_Feb                  0
+   22_Feb-28_Feb                  0
+   01_Mar-07_Mar                  0
+   08_Mar-14_Mar                  0
+   15_Mar-21_Mar                  0
+   22_Mar-28_Mar                  0
+   29_Mar-04_Apr                  0
+   05_Apr-11_Apr                  0
+   12_Apr-18_Apr                  0
+   19_Apr-25_Apr                  177
+   26_Apr-02_May                  1501
+   03_May-09_May                  310
+   10_May-16_May                  350
+   17_May-23_May                  3914
+   24_May-30_May                  202
+   31_May-06_Jun                  674
+   07_Jun-13_Jun                  299
+   14_Jun-20_Jun                  1085
+   21_Jun-27_Jun                  1220
+   28_Jun-04_Jul                  82
 
 #>
 function Get-HashTableForTimeLineChart
 {
     [CmdletBinding()]
-    #[OutputType([int])]
     Param
     (
-        # Param1 help description
         [Parameter(Mandatory=$false,
                    ValueFromPipelineByPropertyName=$false,
                    Position=0)]
         [string]$Table,
+        [Parameter(Mandatory=$true)]
         [string]$After,
         [string]$LogName,
         [string]$SecurityType
     )
-
     Begin
     {
         $hashTable = [ordered]@{}
         $DateToWorkWith = [System.DateTime]$After
-
-        # dhmiourgontas ena antikeimeno TimeSpan mporw na vrw poses meres apexei h hmeromhnia pou irthe apo th current date
         $timeSpan = New-TimeSpan -Start $DateToWorkWith -End (get-date)
-       
-
     }
     Process
     {
+         # gets the appropriate time ranges and then simply makes the SQL queries
+        $timeRangesForNames = Get-TimeRangesForNames -DateTime $After
+        $timeRangesForValues = Get-TimeRangesForValues -DateTime $After
 
-         #pairnei tis katallhles ranges kai meta apla kanei ta select ths sql
-         $timeRangesForNames = Get-TimeRangesForNames -DateTime $After
-         $timeRangesForValues = Get-TimeRangesForValues -DateTime $After
-
-        if ($LogName -eq ""){            
-            #phre tis ranges twra kanei to erwthma kai ftiaxnei to hash table gia timeline xwris logname
-            $counter = 0
-            #gia kathe wra apo ta diasthmata kathe meras kanoume ena sql erwthma       
+        if ($LogName -eq ""){
+            $counter = 0           
             foreach ($timeRange in $timeRangesForValues){
                 $query = "SELECT COUNT(*) AS Count FROM $Table
                           WHERE (TimeCreated BETWEEN $timeRange)"
@@ -2429,76 +2583,53 @@ function Get-HashTableForTimeLineChart
                 $addition = $hashTable.Add($timeRangesForNames.get($counter),$a)
                 $counter++
             }
-
-        } elseif ($LogName -ne ""){
-            
+        } elseif ($LogName -ne ""){            
             if ($LogName -ne "Security"){
-
-                $counter = 0
-                #gia kathe wra apo ta diasthmata kathe meras kanoume ena sql erwthma       
-                foreach ($timeRange in $timeRangesForValues){
-    
+                $counter = 0                   
+                foreach ($timeRange in $timeRangesForValues){    
                     $query = "SELECT COUNT(*) AS Count FROM $Table
                               WHERE LogName = '$LogName'
-                              AND (TimeCreated BETWEEN $timeRange)"
-    
+                              AND (TimeCreated BETWEEN $timeRange)"    
                     $a = (Get-LogDatabaseData -connectionString $LogConnectionString `
                                                -isSQLServer `
-                                               -query $query).Count
-    
+                                               -query $query).Count    
                     $addition = $hashTable.Add($timeRangesForNames.get($counter),$a)
                     $counter++
-                }
-            
-
+                }      
             } elseif ($LogName -eq "Security"){
-
                 if ($SecurityType -eq ""){
-
-                    $counter = 0
-                    #gia kathe wra apo ta diasthmata kathe meras kanoume ena sql erwthma       
+                    $counter = 0                        
                     foreach ($timeRange in $timeRangesForValues){
                         $query = "SELECT COUNT(*) AS Count FROM $Table
                                   WHERE LogName = '$LogName'
-                                  AND (TimeCreated BETWEEN $timeRange)"
-        
+                                  AND (TimeCreated BETWEEN $timeRange)"        
                         $a = (Get-LogDatabaseData -connectionString $LogConnectionString `
                                                    -isSQLServer `
-                                                   -query $query).Count
-        
+                                                   -query $query).Count        
                         $addition = $hashTable.Add($timeRangesForNames.get($counter),$a)
                         $counter++
                     }
-
                 } elseif ($SecurityType -eq "Failure"){
-                    $counter = 0
-                    #gia kathe wra apo ta diasthmata kathe meras kanoume ena sql erwthma       
+                    $counter = 0                       
                     foreach ($timeRange in $timeRangesForValues){
                         $query = "SELECT COUNT(*) AS Count FROM $Table
                                   WHERE LogName = '$LogName' AND EventId = 4625
-                                  AND (TimeCreated BETWEEN $timeRange)"
-        
+                                  AND (TimeCreated BETWEEN $timeRange)"        
                         $a = (Get-LogDatabaseData -connectionString $LogConnectionString `
                                                   -isSQLServer `
                                                   -query $query).Count
-        
                         $addition = $hashTable.Add($timeRangesForNames.get($counter),$a)
                         $counter++
                     }
                 } elseif ($SecurityType -eq "Success"){
-
-                    $counter = 0
-                    #gia kathe wra apo ta diasthmata kathe meras kanoume ena sql erwthma       
-                    foreach ($timeRange in $timeRangesForValues){
-        
+                    $counter = 0   
+                    foreach ($timeRange in $timeRangesForValues){        
                         $query = "SELECT COUNT(*) AS Count FROM $Table
                                   WHERE LogName = '$LogName' AND EventId = 4624
-                                  AND (TimeCreated BETWEEN $timeRange)"
-        
+                                  AND (TimeCreated BETWEEN $timeRange)"        
                         $a = (Get-LogDatabaseData -connectionString $LogConnectionString `
                                                   -isSQLServer `
-                                                  -query $query).Count
-        
+                                                  -query $query).Count        
                         $addition = $hashTable.Add($timeRangesForNames.get($counter),$a)
                         $counter++
                     }
@@ -2507,8 +2638,7 @@ function Get-HashTableForTimeLineChart
         }
      }
     End
-    {
-        
+    {        
         Write-Output $hashTable
     }
 }
@@ -2516,37 +2646,64 @@ function Get-HashTableForTimeLineChart
 
 <#
 .NAME
-   
+   Get-LogonIpAddresses
 
 .SYNOPSIS
-   
+   Gets the ip addresses for some kinds of logon types.
 
 .SYNTAX
-
+   Get-LogonIpAddresses [-LogonType <String>] [-After <String>]
    
 .DESCRIPTION
-   
+   This cmdlet is used from the LogVisualization script in order to display the Additional Information Panel.
+   It implements simple group by queries to retrieve data from database.   
    
 .PARAMETERS
+   -LogonType <String>
+    Gives to the cmdlet a string value.
+
+    Required?                    true
+    Position?                    1
+    Default value
+    Accept pipeline input?       true
+    Accept wildcard characters?  false
+
+   -After <String>
+    Gives to the cmdlet a string value.
+
+    Required?                    true
+    Position?                    1
+    Default value
+    Accept pipeline input?       true
+    Accept wildcard characters?  false
 
 .INPUTS
+   None
 
 .OUTPUTS
-
+   [System.Collections.Specialized.OrderedDictionary]
 .NOTES
 
 .EXAMPLE
 
    -------------------------- EXAMPLE 1 --------------------------
 
-   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
+   PS C:\> Get-LogonIpAddresses -LogonType Failure -After "06/25/2015"
 
-.EXAMPLE
+   This example will output the following:
 
-   -------------------------- EXAMPLE 2 --------------------------
-
-   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
-
+   Name                           Value
+   ----                           -----
+   74.7.195.38                    173
+   91.218.160.70                  173
+   213.132.228.252                47
+   103.55.130.162                 30
+   83.212.116.67                  6
+   -                              2
+   64.4.124.174                   2
+   66.240.236.119                 1
+   200.105.154.93                 1
+   83.14.193.236                  1
 
 #>
 function Get-LogonIpAddresses
@@ -2555,51 +2712,42 @@ function Get-LogonIpAddresses
     [OutputType([int])]
     Param
     (
-        # Param1 help description
         [Parameter(Mandatory=$true,
                    ValueFromPipelineByPropertyName=$true,
                    Position=0)]
         [string]$LogonType,
+        [Parameter(Mandatory=$true)]
         [string]$After
     )
-
     Begin
     {
         $hashTable = [ordered]@{}
     }
     Process
-    {
-    
+    {    
         if ($LogonType -eq "Failure"){
             # from table4625 : failure logon events
             $query = "SELECT SourceNetworkAddress, COUNT(*) AS Count FROM DETAILS4625
                       WHERE TimeCreated >= '$After' 
                       GROUP BY SourceNetworkAddress
                       ORDER BY Count Desc"
-
-
-        } elseif($LogonType -eq "Success"){
-            
+        } elseif($LogonType -eq "Success"){            
             # from table4624 : successful logon events
             $query = "SELECT SourceNetworkAddress, COUNT(*) AS Count FROM DETAILS4624
                       WHERE TimeCreated >= '$After' 
                       GROUP BY SourceNetworkAddress
                       ORDER BY Count Desc"
         } elseif ($LogonType -eq "Explicit"){
-
             # from table4648 : successful logon using explicit credentials events
             $query = "SELECT NetworkAddress, COUNT(*) AS Count FROM DETAILS4648
                       WHERE TimeCreated >= '$After' 
                       GROUP BY NetworkAddress
                       ORDER BY Count Desc"
-
-        }
-        
-        
+        }       
     }
     End
     {
-        #phre to query kai twra epikoinwnei me th vash
+        # get the query and now communicates with the database
         $result = Get-LogDatabaseData -connectionString $LogConnectionString `
                                  -isSQLServer `
                                  -query $query
@@ -2616,48 +2764,44 @@ function Get-LogonIpAddresses
             foreach ($re in $result){
                 $hashTable.Add($re.NetworkAddress, $re.Count)
             }
-        }
-        
-        Write-Output $hashTable
-        
-        
+        }        
+        Write-Output $hashTable        
     }
 }
 
 
 <#
 .NAME
-   
+   Get-TableContents
 
 .SYNOPSIS
-   
+   Gets contents from database.
 
 .SYNTAX
-
+   Get-TableContents [-query [String]]
    
 .DESCRIPTION
-   
+   This cmdlet is used from the LogVisualization script in order to interact with Detection Actions Panel.
+   It implements any query will be retrieved from the user.
    
 .PARAMETERS
+   -query <String>
+    Gives to the cmdlet a string value.
+
+    Required?                    true
+    Position?                    1
+    Default value
+    Accept pipeline input?       true
+    Accept wildcard characters?  false
 
 .INPUTS
+   None
 
 .OUTPUTS
+   [Selected.System.Data.DataRow]
 
 .NOTES
-
-.EXAMPLE
-
-   -------------------------- EXAMPLE 1 --------------------------
-
-   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
-
-.EXAMPLE
-
-   -------------------------- EXAMPLE 2 --------------------------
-
-   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
-
+   None
 
 #>
 function Get-TableContents
@@ -2666,7 +2810,6 @@ function Get-TableContents
     [OutputType([int])]
     Param
     (
-        # Param1 help description
         [Parameter(Mandatory=$true,
                    ValueFromPipelineByPropertyName=$true,
                    Position=0)]
@@ -2674,9 +2817,7 @@ function Get-TableContents
     )
 
     Process
-    {
-        
-        #phre to query kai twra epikoinwnei me th vash
+    {       
         $result = Get-LogDatabaseData -connectionString $LogConnectionString `
                                  -isSQLServer `
                                  -query ($query)
@@ -2699,36 +2840,48 @@ function Get-TableContents
 
 <#
 .NAME
-   
+   Get-LastStoredEvent
 
 .SYNOPSIS
-   
+   Gets the last stored event from database.
 
 .SYNTAX
-
+   Get-LastStoredEvent [-LogName <String>]
    
 .DESCRIPTION
-   
+   This cmdlet is used from the ScheduleLogs script
+   in order to get information about the last stored event in database.  
    
 .PARAMETERS
+   -LogName <String>
+    Gives to the cmdlet a string value.
+
+    Required?                    true
+    Position?                    1
+    Default value
+    Accept pipeline input?       true
+    Accept wildcard characters?  false
 
 .INPUTS
+  None
 
 .OUTPUTS
+   [System.String[]]
 
 .NOTES
+   None
 
 .EXAMPLE
 
    -------------------------- EXAMPLE 1 --------------------------
 
-   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS
+   PS C:\> Get-LastStoredEvent -LogName Security
 
-.EXAMPLE
-
-   -------------------------- EXAMPLE 2 --------------------------
-
-   PS C:\> Clear-TableContentsFromDatabase -Table EVENTS, DETAILS4624
+   This example will output the following:
+   
+   Security
+   57285
+   07/01/2015 06:20:00
 
 
 #>
@@ -2738,7 +2891,6 @@ function Get-LastStoredEvent
     [OutputType([String[]])]
     Param
     (
-        # Param1 help description
         [Parameter(Mandatory=$true,
                    ValueFromPipelineByPropertyName=$true,
                    Position=0)]
@@ -2756,15 +2908,13 @@ function Get-LastStoredEvent
         $c = [string]$a.eventrecordid
         $d = $a.timeCreated
         [String[]]$out= $b,$c, $d
-        Write-Output $out
-      
+        Write-Output $out      
     }
 }
 
 ## Third Group ## END
 # cmdlets that are used only from the script: "ScheduleLogs.ps1"
 # ==================================================================
-
 
 
 Export-ModuleMember -Variable MOLErrorLogPreference
@@ -2785,6 +2935,5 @@ Export-ModuleMember -Function Get-DatabaseAvailableTableNames,
                               Get-HashTableForTimeLineChart,
                               Get-LogonIpAddresses,
                               Get-TableContents,
-                              Get-LastStoredEvent
-    
+                              Get-LastStoredEvent  
                              

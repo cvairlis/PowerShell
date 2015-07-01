@@ -1,4 +1,4 @@
-﻿#remove-module LogAnalysis
+﻿<# ScheduleLogs script runs every ten minutes to ensure that the database is updated with new events #>
 Import-Module LogAnalysis
 
 $array = New-Object System.Collections.ArrayList
@@ -23,32 +23,6 @@ foreach ($ev in $SysEvents){
         break
     }
 }
-
-
-<#
-
-# uses get-eventlog cmdlet to find the exact datetime value for the specific eventlog entry object
-# this datetime will be the starttime to find if there are newest events to store in database
-#[datetime]$dateTime = (Get-EventLog -LogName System -Index $lastSystemEventRecordId).TimeWritten
-
-#here we have a array of eventlogrecords. this array will be filled with new events that currently are not stored in database
-# after this, these events will be stored in database
-#[System.Diagnostics.Eventing.Reader.EventLogRecord[]]$event
-
-
-
-$ht = @{
-    Starttime = $dateTime
-    LogName = "System"
-}
-
-foreach ($ev in Get-WinEvent -FilterHashtable $ht){
-    if($ev.recordid -ne $lastSystemEventRecordId){
-        $a= $array.Add($ev)        
-    }
-}
-
-#>
 
 
 
@@ -76,7 +50,6 @@ foreach ($ev in $ApEvents){
 }
 
 
-
 <# SECURITY #>
 
 
@@ -101,8 +74,6 @@ foreach ($ev in $SecEvents){
 }
 
 
-#finally it has been created an array with eventrecord (we can see this piping the array to gm)
+# finally it has been created an array with eventrecord (we can see this piping the array to gm)
 # we sort this array by TimeCreated property and we send all new events to database
 $array | Sort-Object -Property timecreated | Set-LogEventInDatabase
-
-#$array | select recordid, timecreated
