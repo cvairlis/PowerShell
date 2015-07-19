@@ -34,6 +34,12 @@ function Get-SystemInformation
         $RAMTab = New-Object System.Windows.Forms.TabPage
         $MotherboardTab = New-Object System.Windows.Forms.TabPage
         $GraphicsTab = New-Object System.Windows.Forms.TabPage
+        $HardDrivesTab = New-Object System.Windows.Forms.TabPage
+        $OpticalDrivesTab = New-Object System.Windows.Forms.TabPage
+        $AudioTab = New-Object System.Windows.Forms.TabPage
+        $PeripheralsTab = New-Object System.Windows.Forms.TabPage
+        $NetworkTab = New-Object System.Windows.Forms.TabPage
+        $SWTab = New-Object System.Windows.Forms.TabPage
         
         <# SUMMARY TAB COMPONENTS #>
 
@@ -75,13 +81,44 @@ function Get-SystemInformation
         $MotherboardTab.TabIndex = 4
         $MotherboardTab.Text = "Motherboard"
         $MotherboardTab.BackColor = [System.Drawing.Color]::WhiteSmoke
+
+        $HardDrivesTab.TabIndex = 5
+        $HardDrivesTab.Text = "Hard Drives"
+        $HardDrivesTab.BackColor = [System.Drawing.Color]::WhiteSmoke
+
+        $OpticalDrivesTab.TabIndex = 6
+        $OpticalDrivesTab.Text = "Optical Drives"
+        $OpticalDrivesTab.BackColor = [System.Drawing.Color]::WhiteSmoke
+
+        $AudioTab.TabIndex = 7
+        $AudioTab.Text = "Audio"
+        $AudioTab.BackColor = [System.Drawing.Color]::WhiteSmoke
+
+        $PeripheralsTab.TabIndex = 8
+        $PeripheralsTab.Text = "Peripherals"
+        $PeripheralsTab.BackColor = [System.Drawing.Color]::WhiteSmoke
+
+        $NetworkTab.TabIndex = 9
+        $NetworkTab.Text = "Network"
+        $NetworkTab.BackColor = [System.Drawing.Color]::WhiteSmoke
+
+        $SWTab.TabIndex = 10
+        $SWTab.Text = "Software Installed"
+        $SWTab.BackColor = [System.Drawing.Color]::WhiteSmoke
+
                        
         $tab_control.Controls.Add($SummaryTab)
         $tab_control.Controls.Add($OSTab)
         $tab_control.Controls.Add($CPUTab)
         $tab_control.Controls.Add($RAMTab)
         $tab_control.Controls.Add($MotherboardTab)
-        
+        $tab_control.Controls.Add($HardDrivesTab)
+        $tab_control.Controls.Add($OpticalDrivesTab)
+        $tab_control.Controls.Add($PeripheralsTab)
+        $tab_control.Controls.Add($AudioTab)
+        $tab_control.Controls.Add($NetworkTab)
+        $tab_control.controls.Add($SWTab)
+
         $tab_control.Size = '681, 535'
         $tab_control.Location = '0, 23'
         $tab_control.TabIndex = 0
