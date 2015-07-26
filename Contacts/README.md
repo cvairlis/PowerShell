@@ -6,7 +6,7 @@ Contacts v1.0 READ ME
 Contacts Tool using: PowerShell.
 
 Contacts Tool is a simple tool for your PC running Windows OS, including GUI.
-Contacts Tool works with CSV files to parse your contacts and gives you the ability to search for contacts by requesting a random field from a contact. 
+Contacts Tool works with CSV files to parse your contacts and gives you the ability to search for contacts by requesting a random field from a contact.
 Given the fact that every contact has a list of header fields, you can search for anything and if it will find something to match with your request it will return a grid view window with the contacts found.
 
 WAY IT WORKS:
