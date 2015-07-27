@@ -1,4 +1,8 @@
-﻿<#
+﻿[void] [System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms')
+[void] [System.Reflection.Assembly]::LoadWithPartialName('System.Drawing')
+[void] [System.Reflection.Assembly]::LoadWithPartialName('System.Collections')
+
+<#
 .Synopsis
    Short description
 .DESCRIPTION
@@ -11,7 +15,7 @@
 function Get-Contacts
 {
     [CmdletBinding()]
-    [OutputType([int])]
+    #[OutputType([int])]
     Param
     (
     )
@@ -30,7 +34,7 @@ function Get-Contacts
         $Form.Font = $Font
 
         $FoundLabel = New-Object System.Windows.Forms.Label
-        $FoundLabel.Location = '20, 20'
+        $FoundLabel.Location = '20, 100'
         $FoundLabel.Size = '350, 30'
         $FoundLabel.Text = 'Γίνεται σάρωση αρχείων CSV...'
         $Form.Controls.Add($FoundLabel)
@@ -41,7 +45,7 @@ function Get-Contacts
         $Form.Controls.Add($ParseLabel)
 
         $WaitLabel = New-Object System.Windows.Forms.Label
-        $WaitLabel.Location = '20, 100'
+        $WaitLabel.Location = '20, 20'
         $WaitLabel.Size = '300, 30'
         $Form.Controls.Add($WaitLabel)
 
@@ -68,14 +72,14 @@ function Get-Contacts
             # measure csv files found
             $CsvCounter = (Get-ChildItem -Path $PSScriptRoot\*.csv | Measure-Object ).Count
             if ($CsvCounter -eq 1){
-                $FoundLabel.Text = 'Βρέθηκαν' + " $CsvCounter " + ' αρχείο CSV για σάρωση.'
+                $FoundLabel.Text = 'Βρέθηκαν' + " $CsvCounter " + 'αρχείο CSV για σάρωση.'
             } else {
-                $FoundLabel.Text = 'Βρέθηκαν' + " $CsvCounter " + ' αρχεία CSV για σάρωση.'
+                $FoundLabel.Text = 'Βρέθηκαν' + " $CsvCounter " + 'αρχεία CSV για σάρωση.'
             }
             $ParseLabel.Text = 'Γίνεται σάρωση...'
             $WaitLabel.Text = 'Παρακαλώ περιμένετε...'
         }
-
+        
         $dialogResult = $Form.ShowDialog()
 
     }
@@ -88,4 +92,128 @@ function Get-Contacts
     }
 }
 
-Get-Contacts
+<#
+.Synopsis
+   Short description
+.DESCRIPTION
+   Long description
+.EXAMPLE
+   Example of how to use this cmdlet
+.EXAMPLE
+   Another example of how to use this cmdlet
+#>
+function Get-ContactsTool
+{
+    [CmdletBinding()]
+    [OutputType([int])]
+    Param
+    (
+        # Param1 help description
+        [Parameter(Mandatory=$false,
+                   ValueFromPipelineByPropertyName=$true,
+                   Position=0)]
+        $Param1
+    )
+    Begin
+    {
+        $Form = New-Object System.Windows.Forms.Form
+        $Form.Text = "Εργαλείο επαφών"
+        $Form.Width = 800
+        $Form.Height = 500
+        $Form.MaximizeBox = $False
+        $Form.StartPosition = 'CenterScreen'
+        $Form.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::Fixed3D
+        
+        # Set the font of the text to be used within the form
+        $Font = New-Object System.Drawing.Font("Calibri",16)
+        $Form.Font = $Font
+
+        $SearchPanel = New-Object System.Windows.Forms.TabPage
+        $SearchPanel.TabIndex = 0
+        $SearchPanel.Text = "Αναζήτηση"
+        $SearchPanel.BackColor = [System.Drawing.Color]::WhiteSmoke
+
+        $AddContactPanel = New-Object System.Windows.Forms.TabPage
+        $AddContactPanel.TabIndex = 1
+        $AddContactPanel.Text = "Προσθήκη νέας επαφής"
+        $AddContactPanel.BackColor = [System.Drawing.Color]::WhiteSmoke
+
+        $tab_control = new-object System.Windows.Forms.TabControl
+        $tab_control.Controls.Add($SearchPanel)
+        $tab_control.Controls.Add($AddContactPanel)
+        $tab_control.Size = '792,468'
+        $tab_control.TabIndex = 0
+        $Form.Controls.Add($tab_control)
+    
+        $SearchTextField = New-Object System.Windows.Forms.TextBox
+        $SearchTextField.Location = '20, 250'
+        $SearchTextField.Size = '350, 25'
+        $SearchTextField.BackColor = [System.Drawing.Color]::White
+        $SearchPanel.controls.Add($SearchTextField)
+
+        $SearchButton = New-Object System.Windows.Forms.Button
+        $SearchButton.Location = '20, 300'
+        $SearchButton.Size = '150,50'
+        $SearchButton.Text = 'Αναζήτηση'
+        $SearchButton.BackColor = [System.Drawing.Color]::RosyBrown
+        $SearchPanel.controls.Add($SearchButton)       
+
+        $FileFoundLabel = New-Object System.Windows.Forms.Label
+        $FileFoundLabel.Location = '20, 25'
+        $FileFoundLabel.Size = '450, 25'
+        $SearchPanel.controls.Add($FileFoundLabel)
+
+
+        $FilesFoundListBox = New-Object System.Windows.Forms.ListBox
+        $FilesFoundListBox.Location = '25, 60'
+        $FilesFoundListBox.Size = '250,150'
+        $SearchPanel.Controls.Add($FilesFoundListBox)
+        
+        #$FilesFoundListBox.Enabled = $false
+
+
+        # check file exist link:
+        # https://technet.microsoft.com/en-us/library/ff730955.aspx
+        # FOR SCRIPT USE THIS 
+        [switch]$CsvExists = Test-Path -Path $PSScriptRoot\* -Include *.csv       
+        if (!$CsvExists){
+            Write-Host "de vrethike arxeio csv"
+            $FileFoundLabel.Text = 'Δε βρέθηκαν αρχεία CSV για σάρωση.'
+
+        } else {
+            # measure csv files found
+            $CsvCounter = (Get-ChildItem -Path $PSScriptRoot\*.csv | Measure-Object ).Count
+            if ($CsvCounter -eq 1){
+                $FileFoundLabel.Text = 'Βρέθηκαν' + " $CsvCounter " + 'αρχείο CSV για σάρωση.'
+            } else {
+                $FileFoundLabel.Text = 'Βρέθηκαν' + " $CsvCounter " + 'αρχεία CSV για σάρωση.'
+            }
+
+            foreach ($fn in (Get-ChildItem -Path $PSScriptRoot\*.csv)){
+                $fnstri = $fn.ToString()
+                $FilesFoundListBox.Items.Add($fnstri.Split("\").Get($fnstri.Split("\").Count-1))
+            }
+
+        }
+
+        # listener for the search button
+        $SearchButton.Add_Click({
+            write-host $SearchTextField.Text
+        })
+
+
+
+
+        
+        
+    }
+    Process
+    {
+    }
+    End
+    {
+        $dialogResult = $Form.ShowDialog()
+    }
+}
+
+Get-ContactsTool
