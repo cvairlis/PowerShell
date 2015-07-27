@@ -189,16 +189,25 @@ function Get-ContactsTool
                 $FileFoundLabel.Text = 'Βρέθηκαν' + " $CsvCounter " + 'αρχεία CSV για σάρωση.'
             }
 
+            $filesList = New-Object System.Collections.ArrayList 
             foreach ($fn in (Get-ChildItem -Path $PSScriptRoot\*.csv)){
-                $fnstri = $fn.ToString()
-                $FilesFoundListBox.Items.Add($fnstri.Split("\").Get($fnstri.Split("\").Count-1))
+                $addition = $filesList.Add($fn.ToString())
+                $filesFound = $fn.ToString().Split("\").Get($fn.ToString().Split("\").Count-1)
+                $addition = $FilesFoundListBox.Items.Add($filesFound)
             }
-
         }
+
+      
 
         # listener for the search button
         $SearchButton.Add_Click({
-            write-host $SearchTextField.Text
+            $SearchQuery = "*" + $SearchTextField.Text + "*"
+            write-host $SearchQuery
+            foreach ($str in $filesList){
+                #Write-Host $str
+                $tempCSV = Import-Csv -LiteralPath $str
+                $tempCSV | where {$_ -like "$SearchQuery"}
+            }
         })
 
 
