@@ -108,18 +108,13 @@ function Get-ContactsTool
     [OutputType([int])]
     Param
     (
-        # Param1 help description
-        [Parameter(Mandatory=$false,
-                   ValueFromPipelineByPropertyName=$true,
-                   Position=0)]
-        $Param1
     )
     Begin
     {
         $Form = New-Object System.Windows.Forms.Form
         $Form.Text = "Εργαλείο επαφών"
-        $Form.Width = 800
-        $Form.Height = 500
+        $Form.Width = 1100
+        $Form.Height = 700
         $Form.MaximizeBox = $False
         $Form.StartPosition = 'CenterScreen'
         $Form.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::Fixed3D
@@ -147,37 +142,57 @@ function Get-ContactsTool
         $tab_control.Controls.Add($ContactsPanel)
         $tab_control.Controls.Add($SearchPanel)
         $tab_control.Controls.Add($AddContactPanel)
-        $tab_control.Size = '792,468'
+        $tab_control.Size = '1092,668'
         $tab_control.TabIndex = 0
         $Form.Controls.Add($tab_control)
-    
+        
+        $ContactsGrid =  New-Object System.Windows.Forms.DataGrid
+        $ContactsGrid.Size = '1065, 550'
+        $ContactsGrid.Location = '10, 70'
+        #$ContactsGrid.DataBindings.DefaultDataSourceUpdateMode = 0
+        $ContactsPanel.AutoScroll = $true
+        $ContactsGrid.ColumnHeadersVisible = $true
+        $ContactsGrid.RowHeadersVisible = $true
+        
+        #$ContactsGrid.AutoSize = $true
+        #$ContactsGrid.ReadOnly = $true
+        $ContactsPanel.Controls.Add($ContactsGrid)
+        
+        $ResetContactsPanelButton = New-Object System.Windows.Forms.Button
+        $ResetContactsPanelButton.Location = '10, 15'
+        $ResetContactsPanelButton.Size = '200, 50'
+        $ResetContactsPanelButton.Text = 'Επαναφορά'
+        
+        $ContactsPanel.Controls.Add($ResetContactsPanelButton)
+
+            
         $SearchTextField = New-Object System.Windows.Forms.TextBox
-        $SearchTextField.Location = '20, 250'
+        $SearchTextField.Location = '20, 350'
         $SearchTextField.Size = '350, 25'
         $SearchTextField.BackColor = [System.Drawing.Color]::White
         $SearchPanel.controls.Add($SearchTextField)
 
         $SearchButton = New-Object System.Windows.Forms.Button
-        $SearchButton.Location = '20, 300'
-        $SearchButton.Size = '150,50'
+        $SearchButton.Location = '20, 420'
+        $SearchButton.Size = '200,80'
         $SearchButton.Text = 'Αναζήτηση'
         $SearchButton.BackColor = [System.Drawing.Color]::RosyBrown
         $SearchPanel.controls.Add($SearchButton)       
 
         $FileFoundLabel = New-Object System.Windows.Forms.Label
         $FileFoundLabel.Location = '20, 25'
-        $FileFoundLabel.Size = '350, 25'
+        $FileFoundLabel.Size = '550, 25'
         $SearchPanel.controls.Add($FileFoundLabel)
         
         $FilesFoundListBox = New-Object System.Windows.Forms.ListBox
-        $FilesFoundListBox.Location = '25, 60'
+        $FilesFoundListBox.Location = '25, 100'
         $FilesFoundListBox.Size = '250, 150'
         $SearchPanel.Controls.Add($FilesFoundListBox)
         
         #$FilesFoundListBox.Enabled = $false
         
         $ContactsFound = New-Object System.Windows.Forms.Label
-        $ContactsFound.Location = '440, 250'
+        $ContactsFound.Location = '440, 350'
         $ContactsFound.Size = '250, 50'
         $SearchPanel.Controls.Add($ContactsFound)
 
@@ -185,10 +200,8 @@ function Get-ContactsTool
         # https://technet.microsoft.com/en-us/library/ff730955.aspx
         # FOR SCRIPT USE THIS 
         [switch]$CsvExists = Test-Path -Path $PSScriptRoot\* -Include *.csv       
-        if (!$CsvExists){
-            Write-Host "de vrethike arxeio csv"
+        if (!$CsvExists){            
             $FileFoundLabel.Text = 'Δε βρέθηκαν αρχεία CSV για σάρωση.'
-
         } else {
             # measure csv files found
             $CsvCounter = (Get-ChildItem -Path $PSScriptRoot\*.csv | Measure-Object ).Count
@@ -211,7 +224,10 @@ function Get-ContactsTool
             }
         }
 
-        
+        $array = new-object System.Collections.ArrayList
+        $array.AddRange($contacts)
+
+        $ContactsGrid.DataSource = $array
 
         # listener for the search button
         $SearchButton.Add_Click({
@@ -220,28 +236,29 @@ function Get-ContactsTool
             if ((($contacts | where {$_ -like $SearchQuery}) -ne "") -and $SearchQuery -ne "**"){
                 $ContactsFoundNumber = (($contacts | where {$_ -like $SearchQuery}) | Measure-Object).Count
                 if ($ContactsFoundNumber -eq 1){
-                    $ContactsFound.Text = 'Βρέθηκε' + " $ContactsFoundNumber " + ' επαφή.'
+                    $ContactsFound.Text = 'Βρέθηκε' + " $ContactsFoundNumber " + 'επαφή.'
                 } else {
-                    $ContactsFound.Text = 'Βρέθηκαν' + " $ContactsFoundNumber " + ' επαφές.'
+                    $ContactsFound.Text = 'Βρέθηκαν' + " $ContactsFoundNumber " + 'επαφές.'
                 }
-                $contacts | where {$_ -like $SearchQuery} | Out-GridView                           
+                $FoundContacts = new-object System.Collections.ArrayList
+                $contacts | where {$_ -like $SearchQuery} | ForEach-Object { $FoundContacts.Add($_)}
+                $ContactsGrid.DataSource = $FoundContacts                          
             } elseif ($SearchQuery -eq "**") {
                 $ContactsFoundNumber = (($contacts | where {$_ -like $SearchQuery}) | Measure-Object).Count
                 if ($ContactsFoundNumber -eq 1){
-                    $ContactsFound.Text = 'Βρέθηκε' + " $ContactsFoundNumber " + ' επαφή.'
+                    $ContactsFound.Text = 'Βρέθηκε' + " $ContactsFoundNumber " + 'επαφή.'
                 } else {
-                    $ContactsFound.Text = 'Βρέθηκαν' + " $ContactsFoundNumber " + ' επαφές.'
+                    $ContactsFound.Text = 'Βρέθηκαν' + " $ContactsFoundNumber " + 'επαφές.'
                 }
-                $contacts | where {$_ -like $SearchQuery} | Out-GridView
+                #$contacts | where {$_ -like $SearchQuery} | Out-GridView
+                $ContactsGrid.DataSource = $array
             }
-            
-
         })
 
-
-
-
-        
+        $ResetContactsPanelButton.Add_Click({
+            $ContactsGrid.DataSource = $array
+        })
+    
         
     }
     Process
