@@ -128,17 +128,23 @@ function Get-ContactsTool
         $Font = New-Object System.Drawing.Font("Calibri",16)
         $Form.Font = $Font
 
+        $ContactsPanel = New-Object System.Windows.Forms.TabPage
+        $ContactsPanel.TabIndex = 0
+        $ContactsPanel.Text = 'Επαφές'
+        $ContactsPanel.BackColor = [System.Drawing.Color]::WhiteSmoke
+        
         $SearchPanel = New-Object System.Windows.Forms.TabPage
-        $SearchPanel.TabIndex = 0
+        $SearchPanel.TabIndex = 1
         $SearchPanel.Text = "Αναζήτηση"
         $SearchPanel.BackColor = [System.Drawing.Color]::WhiteSmoke
 
         $AddContactPanel = New-Object System.Windows.Forms.TabPage
-        $AddContactPanel.TabIndex = 1
+        $AddContactPanel.TabIndex = 2
         $AddContactPanel.Text = "Προσθήκη νέας επαφής"
         $AddContactPanel.BackColor = [System.Drawing.Color]::WhiteSmoke
 
         $tab_control = new-object System.Windows.Forms.TabControl
+        $tab_control.Controls.Add($ContactsPanel)
         $tab_control.Controls.Add($SearchPanel)
         $tab_control.Controls.Add($AddContactPanel)
         $tab_control.Size = '792,468'
