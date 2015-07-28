@@ -160,17 +160,20 @@ function Get-ContactsTool
 
         $FileFoundLabel = New-Object System.Windows.Forms.Label
         $FileFoundLabel.Location = '20, 25'
-        $FileFoundLabel.Size = '450, 25'
+        $FileFoundLabel.Size = '350, 25'
         $SearchPanel.controls.Add($FileFoundLabel)
-
-
+        
         $FilesFoundListBox = New-Object System.Windows.Forms.ListBox
         $FilesFoundListBox.Location = '25, 60'
-        $FilesFoundListBox.Size = '250,150'
+        $FilesFoundListBox.Size = '250, 150'
         $SearchPanel.Controls.Add($FilesFoundListBox)
         
         #$FilesFoundListBox.Enabled = $false
-
+        
+        $ContactsFound = New-Object System.Windows.Forms.Label
+        $ContactsFound.Location = '440, 250'
+        $ContactsFound.Size = '250, 50'
+        $SearchPanel.Controls.Add($ContactsFound)
 
         # check file exist link:
         # https://technet.microsoft.com/en-us/library/ff730955.aspx
@@ -195,19 +198,38 @@ function Get-ContactsTool
                 $filesFound = $fn.ToString().Split("\").Get($fn.ToString().Split("\").Count-1)
                 $addition = $FilesFoundListBox.Items.Add($filesFound)
             }
+
+            [System.Management.Automation.PSCustomObject]$contacts
+            foreach ($filePath in $filesList){
+                $contacts += Import-Csv $filePath
+            }
         }
 
-      
+        
 
         # listener for the search button
         $SearchButton.Add_Click({
+            cls
             $SearchQuery = "*" + $SearchTextField.Text + "*"
-            write-host $SearchQuery
-            foreach ($str in $filesList){
-                #Write-Host $str
-                $tempCSV = Import-Csv -LiteralPath $str
-                $tempCSV | where {$_ -like "$SearchQuery"}
+            if ((($contacts | where {$_ -like $SearchQuery}) -ne "") -and $SearchQuery -ne "**"){
+                $ContactsFoundNumber = (($contacts | where {$_ -like $SearchQuery}) | Measure-Object).Count
+                if ($ContactsFoundNumber -eq 1){
+                    $ContactsFound.Text = 'Βρέθηκε' + " $ContactsFoundNumber " + ' επαφή.'
+                } else {
+                    $ContactsFound.Text = 'Βρέθηκαν' + " $ContactsFoundNumber " + ' επαφές.'
+                }
+                $contacts | where {$_ -like $SearchQuery} | Out-GridView                           
+            } elseif ($SearchQuery -eq "**") {
+                $ContactsFoundNumber = (($contacts | where {$_ -like $SearchQuery}) | Measure-Object).Count
+                if ($ContactsFoundNumber -eq 1){
+                    $ContactsFound.Text = 'Βρέθηκε' + " $ContactsFoundNumber " + ' επαφή.'
+                } else {
+                    $ContactsFound.Text = 'Βρέθηκαν' + " $ContactsFoundNumber " + ' επαφές.'
+                }
+                $contacts | where {$_ -like $SearchQuery} | Out-GridView
             }
+            
+
         })
 
 
