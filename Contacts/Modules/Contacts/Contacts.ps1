@@ -63,17 +63,21 @@ function Get-ContactsTool
         $ContactsPanel.Controls.Add($ResetContactsPanelButton)
 
         $ContactsComboBox = New-Object System.Windows.Forms.ComboBox
-        $ContactsComboBox.Size = '400,200'
+        $ContactsComboBox.Size = '350,200'
         $ContactsComboBox.Location = '10,90'
         $ContactsComboBox.DropDownStyle = [System.Windows.Forms.ComboBoxStyle]::DropDownList
         $ContactsPanel.Controls.Add($ContactsComboBox)
   
-        $ContactSelected = New-Object System.Windows.Forms.ListBox
-        $ContactSelected.size = '400, 500'
-        $ContactSelected.Location = '500, 90'
+        $ContactSelected = New-Object System.Windows.Forms.TextBox
+        $ContactSelected.Multiline = $true
+        $ContactSelected.size = '650, 500'
+        $ContactSelected.Location = '400, 90'
+        $ContactSelected.ScrollBars = [System.Windows.Forms.ScrollBars]::Both
+        
         $ContactsPanel.Controls.Add($ContactSelected)  
+        
   
-            
+        
         $SearchTextField = New-Object System.Windows.Forms.TextBox
         $SearchTextField.Location = '20, 350'
         $SearchTextField.Size = '350, 25'
@@ -144,6 +148,18 @@ function Get-ContactsTool
         $ContactsComboBox.SelectedIndex = 0
         #$ContactsGrid.DataSource = $array
 
+        # combo box event handler
+        $ContactsComboBox.add_SelectedIndexChanged({
+            foreach ($contact in $array){
+                            
+                if ($contact."Ονοματεπώνυμο" -eq $ContactsComboBox.Text){
+                    $ContactSelected.Text = ($contact | Format-List | Out-String).TrimStart().TrimEnd()
+                }       
+            }
+            #write-host $ContactsComboBox.Text
+            
+        })
+
         # listener for the search button
         $SearchButton.Add_Click({
             cls
@@ -156,8 +172,11 @@ function Get-ContactsTool
                     $ContactsFound.Text = 'Βρέθηκαν' + " $ContactsFoundNumber " + 'επαφές.'
                 }
                 $FoundContacts = new-object System.Collections.ArrayList
-                $contacts | where {$_ -like $SearchQuery} | ForEach-Object { $FoundContacts.Add($_)}
-                $ContactsGrid.DataSource = $FoundContacts                          
+                $contacts | where {$_ -like $SearchQuery} | ForEach-Object { $FoundContacts.Add($_.Ονοματεπώνυμο)}
+                
+                $ContactsComboBox.DataSource = $FoundContacts                        
+
+
             } elseif ($SearchQuery -eq "**") {
                 $ContactsFoundNumber = (($contacts | where {$_ -like $SearchQuery}) | Measure-Object).Count
                 if ($ContactsFoundNumber -eq 1){
