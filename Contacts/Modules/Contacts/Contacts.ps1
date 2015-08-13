@@ -12,96 +12,6 @@
 .EXAMPLE
    Another example of how to use this cmdlet
 #>
-function Get-Contacts
-{
-    [CmdletBinding()]
-    #[OutputType([int])]
-    Param
-    (
-    )
-    Begin
-    {
-        $Form = New-Object System.Windows.Forms.Form
-        $Form.Text = "Προετοιμασία επαφών"
-        $Form.Width = 450
-        $Form.Height = 200
-        $Form.MaximizeBox = $False
-        $Form.StartPosition = 'CenterScreen'
-        $Form.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::Fixed3D
-
-        # Set the font of the text to be used within the form
-        $Font = New-Object System.Drawing.Font("Calibri",16)
-        $Form.Font = $Font
-
-        $FoundLabel = New-Object System.Windows.Forms.Label
-        $FoundLabel.Location = '20, 100'
-        $FoundLabel.Size = '350, 30'
-        $FoundLabel.Text = 'Γίνεται σάρωση αρχείων CSV...'
-        $Form.Controls.Add($FoundLabel)
-
-        $ParseLabel = New-Object System.Windows.Forms.Label
-        $ParseLabel.Location = '20, 60'
-        $ParseLabel.Size = '300, 30'
-        $Form.Controls.Add($ParseLabel)
-
-        $WaitLabel = New-Object System.Windows.Forms.Label
-        $WaitLabel.Location = '20, 20'
-        $WaitLabel.Size = '300, 30'
-        $Form.Controls.Add($WaitLabel)
-
-        <#
-        # For EXE USE THIS 
-        [switch]$pathExists = Test-Path -Path ((Get-Location).Path+"\exportedData")
-        #FOR EXE USE THIS 
-        $path = (Get-Location).Path+"\exportedData"
-        # elegxei an o fakelos exportedData yparxei!
-        # an den yparxei ton dhmiourgei kai vazei ekei mesa tis ta csv kai ta html
-        if (!$pathExists){
-            New-Item -ItemType Directory -Force -Path $path
-        }
-        #>  
-                
-        # check file exist link:
-        # https://technet.microsoft.com/en-us/library/ff730955.aspx
-        # FOR SCRIPT USE THIS 
-        [switch]$CsvExists = Test-Path -Path $PSScriptRoot\* -Include *.csv       
-        if (!$CsvExists){
-            Write-Host "de vrethike arxeio csv"
-            $FoundLabel.Text = 'Δε βρέθηκαν αρχεία CSV για σάρωση.'
-        } else {
-            # measure csv files found
-            $CsvCounter = (Get-ChildItem -Path $PSScriptRoot\*.csv | Measure-Object ).Count
-            if ($CsvCounter -eq 1){
-                $FoundLabel.Text = 'Βρέθηκαν' + " $CsvCounter " + 'αρχείο CSV για σάρωση.'
-            } else {
-                $FoundLabel.Text = 'Βρέθηκαν' + " $CsvCounter " + 'αρχεία CSV για σάρωση.'
-            }
-            $ParseLabel.Text = 'Γίνεται σάρωση...'
-            $WaitLabel.Text = 'Παρακαλώ περιμένετε...'
-        }
-        
-        $dialogResult = $Form.ShowDialog()
-
-    }
-    Process
-    {
-    }
-    End
-    {
-        
-    }
-}
-
-<#
-.Synopsis
-   Short description
-.DESCRIPTION
-   Long description
-.EXAMPLE
-   Example of how to use this cmdlet
-.EXAMPLE
-   Another example of how to use this cmdlet
-#>
 function Get-ContactsTool
 {
     [CmdletBinding()]
@@ -145,26 +55,24 @@ function Get-ContactsTool
         $tab_control.Size = '1092,668'
         $tab_control.TabIndex = 0
         $Form.Controls.Add($tab_control)
-        
-        $ContactsGrid =  New-Object System.Windows.Forms.DataGrid
-        $ContactsGrid.Size = '1065, 550'
-        $ContactsGrid.Location = '10, 70'
-        #$ContactsGrid.DataBindings.DefaultDataSourceUpdateMode = 0
-        $ContactsPanel.AutoScroll = $true
-        $ContactsGrid.ColumnHeadersVisible = $true
-        $ContactsGrid.RowHeadersVisible = $true
-        
-        #$ContactsGrid.AutoSize = $true
-        #$ContactsGrid.ReadOnly = $true
-        $ContactsPanel.Controls.Add($ContactsGrid)
-        
+    
         $ResetContactsPanelButton = New-Object System.Windows.Forms.Button
         $ResetContactsPanelButton.Location = '10, 15'
         $ResetContactsPanelButton.Size = '200, 50'
         $ResetContactsPanelButton.Text = 'Επαναφορά'
-        
         $ContactsPanel.Controls.Add($ResetContactsPanelButton)
 
+        $ContactsComboBox = New-Object System.Windows.Forms.ComboBox
+        $ContactsComboBox.Size = '400,200'
+        $ContactsComboBox.Location = '10,90'
+        $ContactsComboBox.DropDownStyle = [System.Windows.Forms.ComboBoxStyle]::DropDownList
+        $ContactsPanel.Controls.Add($ContactsComboBox)
+  
+        $ContactSelected = New-Object System.Windows.Forms.ListBox
+        $ContactSelected.size = '400, 500'
+        $ContactSelected.Location = '500, 90'
+        $ContactsPanel.Controls.Add($ContactSelected)  
+  
             
         $SearchTextField = New-Object System.Windows.Forms.TextBox
         $SearchTextField.Location = '20, 350'
@@ -226,8 +134,15 @@ function Get-ContactsTool
 
         $array = new-object System.Collections.ArrayList
         $array.AddRange($contacts)
+        
+        $names = New-Object System.Collections.ArrayList
+        foreach ($contact in $array){
+            $addition = $names.Add($contact.Ονοματεπώνυμο)
+        }
 
-        $ContactsGrid.DataSource = $array
+        $ContactsComboBox.DataSource = $names
+        $ContactsComboBox.SelectedIndex = 0
+        #$ContactsGrid.DataSource = $array
 
         # listener for the search button
         $SearchButton.Add_Click({
@@ -256,7 +171,8 @@ function Get-ContactsTool
         })
 
         $ResetContactsPanelButton.Add_Click({
-            $ContactsGrid.DataSource = $array
+            $ContactsComboBox.DataSource = $names
+            $ContactsComboBox.SelectedIndex = 0
         })
     
         
