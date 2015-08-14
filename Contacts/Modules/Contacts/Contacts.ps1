@@ -69,6 +69,8 @@ function Get-ContactsTool
         $ContactsPanel.Controls.Add($ContactsComboBox)
   
         $ContactSelected = New-Object System.Windows.Forms.TextBox
+        $ContactSelected.ReadOnly = $true
+        $ContactSelected.BackColor = [System.Drawing.Color]::White
         $ContactSelected.Multiline = $true
         $ContactSelected.size = '650, 500'
         $ContactSelected.Location = '400, 90'
