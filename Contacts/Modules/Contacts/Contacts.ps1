@@ -43,15 +43,27 @@ function Get-ContactsTool
         $SearchPanel.Text = "Αναζήτηση"
         $SearchPanel.BackColor = [System.Drawing.Color]::WhiteSmoke
 
+        $EditContactPanel = New-Object System.Windows.Forms.TabPage
+        $EditContactPanel.TabIndex = 2
+        $EditContactPanel.Text = "Επεξεργασία Υπάρχουσας Επαφής"
+        $EditContactPanel.BackColor = [System.Drawing.Color]::WhiteSmoke
+
         $AddContactPanel = New-Object System.Windows.Forms.TabPage
-        $AddContactPanel.TabIndex = 2
+        $AddContactPanel.TabIndex = 3
         $AddContactPanel.Text = "Προσθήκη νέας επαφής"
         $AddContactPanel.BackColor = [System.Drawing.Color]::WhiteSmoke
+
+        $RemoveContactPanel = New-Object System.Windows.Forms.TabPage
+        $RemoveContactPanel.TabIndex = 4
+        $RemoveContactPanel.Text = "Διαγραφή υπάρχουσας επαφής"
+        $RemoveContactPanel.BackColor = [System.Drawing.Color]::WhiteSmoke
 
         $tab_control = new-object System.Windows.Forms.TabControl
         $tab_control.Controls.Add($ContactsPanel)
         $tab_control.Controls.Add($SearchPanel)
+        $tab_control.Controls.Add($EditContactPanel)
         $tab_control.Controls.Add($AddContactPanel)
+        $tab_control.Controls.Add($RemoveContactPanel)
         $tab_control.Size = '1092,668'
         $tab_control.TabIndex = 0
         $Form.Controls.Add($tab_control)
