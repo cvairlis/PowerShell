@@ -45,7 +45,7 @@ function Get-ContactsTool
 
         $EditContactPanel = New-Object System.Windows.Forms.TabPage
         $EditContactPanel.TabIndex = 2
-        $EditContactPanel.Text = "Επεξεργασία Υπάρχουσας Επαφής"
+        $EditContactPanel.Text = "Επεξεργασία υπάρχουσας επαφής"
         $EditContactPanel.BackColor = [System.Drawing.Color]::WhiteSmoke
 
         $AddContactPanel = New-Object System.Windows.Forms.TabPage
@@ -89,9 +89,7 @@ function Get-ContactsTool
         $ContactSelected.ScrollBars = [System.Windows.Forms.ScrollBars]::Both
         
         $ContactsPanel.Controls.Add($ContactSelected)  
-        
-  
-        
+                
         $SearchTextField = New-Object System.Windows.Forms.TextBox
         $SearchTextField.Location = '20, 350'
         $SearchTextField.Size = '350, 25'
