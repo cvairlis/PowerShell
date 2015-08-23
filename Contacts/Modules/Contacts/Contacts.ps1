@@ -159,7 +159,7 @@ function Get-ContactsTool
         $ContactsComboBox.DataSource = $names
         $ContactsComboBox.SelectedIndex = 0
         #$ContactsGrid.DataSource = $array
-
+        
         # combo box event handler
         $ContactsComboBox.add_SelectedIndexChanged({
             foreach ($contact in $array){
@@ -207,6 +207,98 @@ function Get-ContactsTool
         })
     
         
+        $EditContactLabel = New-Object System.Windows.Forms.Label
+        $EditContactLabel.Size = '450,30'
+        $EditContactLabel.Location = '10,20'
+        $EditContactLabel.Text = 'Επιλέξτε επαφή για επεξεργασία'
+        $EditContactPanel.controls.Add($EditContactLabel)
+
+        $EditContactsComboBox = New-Object System.Windows.Forms.ComboBox
+        $EditContactsComboBox.Size = '330,200'
+        $EditContactsComboBox.Location = '10,70'
+        $EditContactsComboBox.DropDownStyle = [System.Windows.Forms.ComboBoxStyle]::DropDownList
+        $EditContactsComboBox.DataSource = $names
+        $EditContactPanel.controls.Add($EditContactsComboBox)
+
+        $FirstNameLabel = New-Object System.Windows.Forms.Label
+        $FirstNameLabel.Size = '100,25'
+        $FirstNameLabel.Location = '10, 150'
+        $FirstNameLabel.Text = 'Όνομα:'
+        $EditContactPanel.Controls.Add($FirstNameLabel)
+
+        $LastNameLabel = New-Object System.Windows.Forms.Label
+        $LastNameLabel.Size = '100,25'
+        $LastNameLabel.Location = '10, 180'
+        $LastNameLabel.Text = 'Επώνυμο:'
+        $EditContactPanel.Controls.Add($LastNameLabel)
+
+        $MiddleNameLabel = New-Object System.Windows.Forms.Label
+        $MiddleNameLabel.Size = '150,25'
+        $MiddleNameLabel.Location = '10, 210'
+        $MiddleNameLabel.Text = 'Πατρώνυμο:'
+        $EditContactPanel.Controls.Add($MiddleNameLabel)
+
+        $NameLabel = New-Object System.Windows.Forms.Label
+        $NameLabel.Size = '180,25'
+        $NameLabel.Location = '10, 240'
+        $NameLabel.Text = 'Ονοματεπώνυμο:'
+        $EditContactPanel.Controls.Add($NameLabel)
+
+        $NickNameLabel = New-Object System.Windows.Forms.Label
+        $NickNameLabel.Size = '180,25'
+        $NickNameLabel.Location = '10, 270'
+        $NickNameLabel.Text = 'Ψευδώνυμο:'
+        $EditContactPanel.Controls.Add($NickNameLabel)
+
+        $EmailLabel = New-Object System.Windows.Forms.Label
+        $EmailLabel.Size = '230,25'
+        $EmailLabel.Location = '10, 300'
+        $EmailLabel.Text = 'Ηλεκτρονική Διεύθυνση:'
+        $EditContactPanel.Controls.Add($EmailLabel)
+
+        $HomeStreetLabel = New-Object System.Windows.Forms.Label
+        $HomeStreetLabel.Size = '200,25'
+        $HomeStreetLabel.Location = '10, 330'
+        $HomeStreetLabel.Text = 'Διεύθυνση Οικίας:'
+        $EditContactPanel.Controls.Add($HomeStreetLabel)
+
+
+
+        <#
+
+
+        
+        $EditContactPanel.Controls.Add()
+        $EditContactPanel.Controls.Add()
+        $EditContactPanel.Controls.Add()
+        $EditContactPanel.Controls.Add()
+        $EditContactPanel.Controls.Add()
+        $EditContactPanel.Controls.Add()
+        $EditContactPanel.Controls.Add()
+        $EditContactPanel.Controls.Add()
+        $EditContactPanel.Controls.Add()
+        $EditContactPanel.Controls.Add()
+        $EditContactPanel.Controls.Add()
+        $EditContactPanel.Controls.Add()
+        $EditContactPanel.Controls.Add()
+        $EditContactPanel.Controls.Add()
+        $EditContactPanel.Controls.Add()
+        $EditContactPanel.Controls.Add()
+        $EditContactPanel.Controls.Add()
+        $EditContactPanel.Controls.Add()
+        $EditContactPanel.Controls.Add()
+        $EditContactPanel.Controls.Add()
+        $EditContactPanel.Controls.Add()
+        $EditContactPanel.Controls.Add()
+        $EditContactPanel.Controls.Add()
+        $EditContactPanel.Controls.Add()
+        $EditContactPanel.Controls.Add()
+        $EditContactPanel.Controls.Add()
+        $EditContactPanel.Controls.Add()
+        $EditContactPanel.Controls.Add()
+        #>
+
+
     }
     Process
     {
