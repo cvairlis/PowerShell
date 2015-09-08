@@ -262,42 +262,139 @@ function Get-ContactsTool
         $HomeStreetLabel.Text = 'Διεύθυνση Οικίας:'
         $EditContactPanel.Controls.Add($HomeStreetLabel)
 
+        $HomeCityLabel = New-Object System.Windows.Forms.Label
+        $HomeCityLabel.Size = '200,25'
+        $HomeCityLabel.Location = '10, 360'
+        $HomeCityLabel.Text = 'Πόλη Οικίας:'
+        $EditContactPanel.Controls.Add($HomeCityLabel)
 
+        $HomePostalCodeLabel = New-Object System.Windows.Forms.Label
+        $HomePostalCodeLabel.Size = '200,25'
+        $HomePostalCodeLabel.Location = '10, 390'
+        $HomePostalCodeLabel.Text = 'Τ. Κ. Οικίας:'
+        $EditContactPanel.Controls.Add($HomePostalCodeLabel)
 
-        <#
+        $HomeStateLabel = New-Object System.Windows.Forms.Label
+        $HomeStateLabel.Size = '200,25'
+        $HomeStateLabel.Location = '10, 420'
+        $HomeStateLabel.Text = 'Νομός Οικίας:'
+        $EditContactPanel.Controls.Add($HomeStateLabel)
 
+        $HomeRegionLabel = New-Object System.Windows.Forms.Label
+        $HomeRegionLabel.Size = '210,25'
+        $HomeRegionLabel.Location = '10, 450'
+        $HomeRegionLabel.Text = 'Χώρα/Περιοχή Οικίας:'
+        $EditContactPanel.Controls.Add($HomeRegionLabel)
+
+        $HomePhoneLabel = New-Object System.Windows.Forms.Label
+        $HomePhoneLabel.Size = '200,25'
+        $HomePhoneLabel.Location = '10, 480'
+        $HomePhoneLabel.Text = 'Τηλέφωνο Οικίας:'
+        $EditContactPanel.Controls.Add($HomePhoneLabel)
+
+        $HomeFaxLabel = New-Object System.Windows.Forms.Label
+        $HomeFaxLabel.Size = '200,25'
+        $HomeFaxLabel.Location = '10, 510'
+        $HomeFaxLabel.Text = 'Φαξ Οικίας:'
+        $EditContactPanel.Controls.Add($HomeFaxLabel)
+        
+        $MobilePhoneLabel = New-Object System.Windows.Forms.Label
+        $MobilePhoneLabel.Size = '200,25'
+        $MobilePhoneLabel.Location = '10, 540'
+        $MobilePhoneLabel.Text = 'Κινητό τηλέφωνο:'
+        $EditContactPanel.Controls.Add($MobilePhoneLabel)    
+
+        $PersonalWebPageLabel = New-Object System.Windows.Forms.Label
+        $PersonalWebPageLabel.Size = '230,25'
+        $PersonalWebPageLabel.Location = '10, 570'
+        $PersonalWebPageLabel.Text = 'Προσωπική Ιστοσελίδα:'
+        $EditContactPanel.Controls.Add($PersonalWebPageLabel)    
+
+        $BusinessStreetLabel = New-Object System.Windows.Forms.Label
+        $BusinessStreetLabel.Size = '210,25'
+        $BusinessStreetLabel.Location = '550, 150'
+        $BusinessStreetLabel.Text = 'Διεύθυνση Εργασίας:'
+        $EditContactPanel.Controls.Add($BusinessStreetLabel)
+
+        $BusinessCityLabel = New-Object System.Windows.Forms.Label
+        $BusinessCityLabel.Size = '200,25'
+        $BusinessCityLabel.Location = '550, 180'
+        $BusinessCityLabel.Text = 'Πόλη Εργασίας:'
+        $EditContactPanel.Controls.Add($BusinessCityLabel)
+        
+        $BusinessPostalCodeLabel = New-Object System.Windows.Forms.Label
+        $BusinessPostalCodeLabel.Size = '200,25'
+        $BusinessPostalCodeLabel.Location = '550, 210'
+        $BusinessPostalCodeLabel.Text = 'Τ. Κ. Εργασίας:'
+        $EditContactPanel.Controls.Add($BusinessPostalCodeLabel)
+        
+        $BusinessStateLabel = New-Object System.Windows.Forms.Label
+        $BusinessStateLabel.Size = '200,25'
+        $BusinessStateLabel.Location = '550, 240'
+        $BusinessStateLabel.Text = 'Νομός Εργασίας:'
+        $EditContactPanel.Controls.Add($BusinessStateLabel)
+
+        $BusinessRegionLabel = New-Object System.Windows.Forms.Label
+        $BusinessRegionLabel.Size = '240,25'
+        $BusinessRegionLabel.Location = '550, 270'
+        $BusinessRegionLabel.Text = 'Χώρα/Περιοχή Εργασίας:'
+        $EditContactPanel.Controls.Add($BusinessRegionLabel)
+
+        $BusinessWebPageLabel = New-Object System.Windows.Forms.Label
+        $BusinessWebPageLabel.Size = '260,25'
+        $BusinessWebPageLabel.Location = '550, 300'
+        $BusinessWebPageLabel.Text = 'Επαγγελματική Ιστοσελίδα:'
+        $EditContactPanel.Controls.Add($BusinessWebPageLabel)
+
+        $BusinessPhoneLabel = New-Object System.Windows.Forms.Label
+        $BusinessPhoneLabel.Size = '240,25'
+        $BusinessPhoneLabel.Location = '550, 330'
+        $BusinessPhoneLabel.Text = 'Τηλέφωνο Εργασίας:'
+        $EditContactPanel.Controls.Add($BusinessPhoneLabel)
+
+        $BusinessFaxLabel = New-Object System.Windows.Forms.Label
+        $BusinessFaxLabel.Size = '240,25'
+        $BusinessFaxLabel.Location = '550, 360'
+        $BusinessFaxLabel.Text = 'Φαξ Εργασίας:'
+        $EditContactPanel.Controls.Add($BusinessFaxLabel)
+        
+        $PagerLabel = New-Object System.Windows.Forms.Label
+        $PagerLabel.Size = '240,25'
+        $PagerLabel.Location = '550, 390'
+        $PagerLabel.Text = 'Τηλεειδοποίηση:'
+        $EditContactPanel.Controls.Add($PagerLabel)
+
+        $CompanyLabel = New-Object System.Windows.Forms.Label
+        $CompanyLabel.Size = '240,25'
+        $CompanyLabel.Location = '550, 420'
+        $CompanyLabel.Text = 'Εταιρεία:'
+        $EditContactPanel.Controls.Add($CompanyLabel)
+
+        $JobTitleLabel = New-Object System.Windows.Forms.Label
+        $JobTitleLabel.Size = '240,25'
+        $JobTitleLabel.Location = '550, 450'
+        $JobTitleLabel.Text = 'Θέση στην Εταιρεία:'
+        $EditContactPanel.Controls.Add($JobTitleLabel)
+
+        $DepartmentLabel = New-Object System.Windows.Forms.Label
+        $DepartmentLabel.Size = '240,25'
+        $DepartmentLabel.Location = '550, 480'
+        $DepartmentLabel.Text = 'Τμήμα:'
+        $EditContactPanel.Controls.Add($DepartmentLabel)
+
+        $OfficeLocationLabel = New-Object System.Windows.Forms.Label
+        $OfficeLocationLabel.Size = '240,25'
+        $OfficeLocationLabel.Location = '550, 510'
+        $OfficeLocationLabel.Text = 'Τοποθεσία Γραφείου:'
+        $EditContactPanel.Controls.Add($OfficeLocationLabel)
+
+        $NotesLabel = New-Object System.Windows.Forms.Label
+        $NotesLabel.Size = '240,25'
+        $NotesLabel.Location = '550, 540'
+        $NotesLabel.Text = 'Σημειώσεις:'
+        $EditContactPanel.Controls.Add($NotesLabel)
 
         
-        $EditContactPanel.Controls.Add()
-        $EditContactPanel.Controls.Add()
-        $EditContactPanel.Controls.Add()
-        $EditContactPanel.Controls.Add()
-        $EditContactPanel.Controls.Add()
-        $EditContactPanel.Controls.Add()
-        $EditContactPanel.Controls.Add()
-        $EditContactPanel.Controls.Add()
-        $EditContactPanel.Controls.Add()
-        $EditContactPanel.Controls.Add()
-        $EditContactPanel.Controls.Add()
-        $EditContactPanel.Controls.Add()
-        $EditContactPanel.Controls.Add()
-        $EditContactPanel.Controls.Add()
-        $EditContactPanel.Controls.Add()
-        $EditContactPanel.Controls.Add()
-        $EditContactPanel.Controls.Add()
-        $EditContactPanel.Controls.Add()
-        $EditContactPanel.Controls.Add()
-        $EditContactPanel.Controls.Add()
-        $EditContactPanel.Controls.Add()
-        $EditContactPanel.Controls.Add()
-        $EditContactPanel.Controls.Add()
-        $EditContactPanel.Controls.Add()
-        $EditContactPanel.Controls.Add()
-        $EditContactPanel.Controls.Add()
-        $EditContactPanel.Controls.Add()
-        $EditContactPanel.Controls.Add()
-        #>
-
 
     }
     Process
