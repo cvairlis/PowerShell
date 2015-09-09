@@ -206,7 +206,7 @@ function Get-ContactsTool
             $ContactsComboBox.SelectedIndex = 0
         })
     
-        
+        <# EDIT CONTACT PANEL START - LABELS ETC - #>
         $EditContactLabel = New-Object System.Windows.Forms.Label
         $EditContactLabel.Size = '450,30'
         $EditContactLabel.Location = '10,20'
@@ -394,7 +394,7 @@ function Get-ContactsTool
         $NotesLabel.Text = 'Σημειώσεις:'
         $EditContactPanel.Controls.Add($NotesLabel)
 
-        
+        <# EDIT CONTACT PANEL END #>
 
     }
     Process
