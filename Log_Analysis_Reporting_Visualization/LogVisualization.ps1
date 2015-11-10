@@ -2,7 +2,6 @@
 $LogConnectionString = 
         "server=localhost\SQLEXPRESS;database=LogDB;trusted_connection=True"
 
-
 Import-Module LogAnalysis
 
 
@@ -90,7 +89,7 @@ function Get-LogVisualization
         $StartForm = New-Object system.Windows.Forms.Form
 
 
-        $StartForm.Text = "Preparing events"
+        $StartForm.Text = "Preparing data"
         $StartForm.Width = 450
         $StartForm.Height = 180
         $StartForm.MaximizeBox = $False
@@ -207,7 +206,7 @@ using explicit credentials..."
         $Form = New-Object system.Windows.Forms.Form
 
 
-        $Form.Text = "Intrusion Detection Results"
+        $Form.Text = "PowerShell HIDS Results"
         $Form.Width = 1200
         $Form.Height = 700
         $Form.MaximizeBox = $False
@@ -1193,7 +1192,7 @@ function Get-PreparedForVisualization
         # data have to be loaded 
         $PreparingDataForm = New-Object System.Windows.Forms.Form
 
-        $PreparingDataForm.Text = "Preparing Data"
+        $PreparingDataForm.Text = "PowerShell HIDS"
         $PreparingDataForm.Width = 500
         $PreparingDataForm.Height = 470
         $PreparingDataForm.MaximizeBox = $False
