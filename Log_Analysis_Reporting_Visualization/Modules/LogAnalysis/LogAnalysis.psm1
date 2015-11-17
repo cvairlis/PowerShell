@@ -19,7 +19,6 @@ Import-Module LogDatabase
       Set-LogEventInDatabase
       Set-TableAutoIncrementValue
       Clear-TableContentsFromDatabase
-      Get-CaptionFromSId
       Get-LogonType
       Get-ImpersonationLevelExplanation
       Get-StatusExplanation
