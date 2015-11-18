@@ -1014,8 +1014,9 @@ function Clear-TableContentsFromDatabase
    
 .DESCRIPTION
    For some security events there is a logon type within the message of the event.
-   This logon type is represented by a number. This cmdlet takes as a parameter 
-   the Logon Type as an integer and returns a string with what this integer means.
+   This logon type is represented by a number. 
+   This cmdlet takes as a parameter the Logon Type as an integer and returns 
+   a string with what this integer means.
    
 .PARAMETERS
    -LogonType <Int32>
@@ -1961,7 +1962,7 @@ function Get-TimeRangesForValues
    
 .DESCRIPTION
    This cmdlet is used by the first window of the "LogVisualization.ps1" in order to inform the user 
-   about how many event record exist in the database.    
+   about how many event records exist in the database.    
    
 .PARAMETERS
    -Table <String[]>
@@ -2050,7 +2051,7 @@ function Get-TableRowNumber
    Get-LastEventDateFromDatabase [-Table <String>]
    
 .DESCRIPTION
-   This cmdlet makes an sql query to receive an String value. 
+   This cmdlet makes an sql query to receive a String value. 
    This string is the output of the cmdlet and represents the timecreated column value
    of the last record found in the database. In other words it finds the oldest record 
    of a table and returns the timecreated column value.
@@ -2263,7 +2264,7 @@ function Get-EventsOccured
    Get-HashTableForPieChart [[-Table <String>] [-After <String>] [-LogName <String>]]
    
 .DESCRIPTION
-   This cmdlet is used from the LogVisualization script in order to display the pie charts.
+   This cmdlet is used by the LogVisualization script in order to display the pie charts.
    It implements simple group by queries to retrieve data from database.   
    
 .PARAMETERS
@@ -2774,7 +2775,7 @@ function Get-LogonIpAddresses
    Get-TableContents
 
 .SYNOPSIS
-   Gets contents from database.
+   Gets contents from database tables.
 
 .SYNTAX
    Get-TableContents [-query [String]]
@@ -2848,7 +2849,7 @@ function Get-TableContents
    Get-LastStoredEvent [-LogName <String>]
    
 .DESCRIPTION
-   This cmdlet is used from the ScheduleLogs script
+   This cmdlet is used by the ScheduleLogs script
    in order to get information about the last stored event in database.  
    
 .PARAMETERS
